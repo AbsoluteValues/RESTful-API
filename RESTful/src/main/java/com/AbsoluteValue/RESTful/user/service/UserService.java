@@ -1,6 +1,6 @@
-package AbsoluteValue.RESTful.user.service;
+package com.AbsoluteValue.RESTful.user.service;
 
-import AbsoluteValue.RESTful.user.vo.User;
+import com.AbsoluteValue.RESTful.user.vo.User;
 
 public interface UserService {
 

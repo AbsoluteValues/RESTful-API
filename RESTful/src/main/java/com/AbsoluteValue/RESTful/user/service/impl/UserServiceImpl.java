@@ -1,8 +1,8 @@
-package AbsoluteValue.RESTful.user.service.impl;
+package com.AbsoluteValue.RESTful.user.service.impl;
 
-import AbsoluteValue.RESTful.user.mapper.UserMapper;
-import AbsoluteValue.RESTful.user.service.UserService;
-import AbsoluteValue.RESTful.user.vo.User;
+import com.AbsoluteValue.RESTful.user.mapper.UserMapper;
+import com.AbsoluteValue.RESTful.user.service.UserService;
+import com.AbsoluteValue.RESTful.user.vo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
