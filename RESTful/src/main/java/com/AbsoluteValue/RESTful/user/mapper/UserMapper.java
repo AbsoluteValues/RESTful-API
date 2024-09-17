@@ -1,6 +1,6 @@
-package AbsoluteValue.RESTful.user.mapper;
+package com.AbsoluteValue.RESTful.user.mapper;
 
-import AbsoluteValue.RESTful.user.vo.User;
+import com.AbsoluteValue.RESTful.user.vo.User;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

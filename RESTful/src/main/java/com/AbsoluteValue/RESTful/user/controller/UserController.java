@@ -1,7 +1,7 @@
-package AbsoluteValue.RESTful.user.controller;
+package com.AbsoluteValue.RESTful.user.controller;
 
-import AbsoluteValue.RESTful.user.service.UserService;
-import AbsoluteValue.RESTful.user.vo.User;
+import com.AbsoluteValue.RESTful.user.service.UserService;
+import com.AbsoluteValue.RESTful.user.vo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
