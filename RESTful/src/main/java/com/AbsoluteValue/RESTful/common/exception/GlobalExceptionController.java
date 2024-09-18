@@ -53,11 +53,12 @@ public class GlobalExceptionController {
     @ExceptionHandler(CustomException.class)
     private ErrorResponse handleCustomException(CustomException ex, WebRequest request) {
         logger.warn("Resource not found: ", ex);
+        HttpStatus status = ex.getStatus();
 
-        System.out.println(ex.getMessage());
+        System.out.println(status);
 
         return ErrorResponse.build(
-                HttpStatus.NOT_FOUND,
+                status,
                 ex.getMessage(),
                 request,
                 "RESOURCE_NOT_FOUND"
