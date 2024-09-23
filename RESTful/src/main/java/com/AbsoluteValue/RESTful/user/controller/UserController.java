@@ -2,10 +2,11 @@ package com.AbsoluteValue.RESTful.user.controller;
 
 import com.AbsoluteValue.RESTful.common.exception.CustomException;
 import com.AbsoluteValue.RESTful.common.exception.ErrorCode;
+import com.AbsoluteValue.RESTful.common.success.SuccessCode;
+import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
 import com.AbsoluteValue.RESTful.user.service.UserService;
 import com.AbsoluteValue.RESTful.user.vo.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +21,12 @@ public class UserController {
     public UserController(UserService userService) { this.userService = userService; }
 
     @PostMapping("/user")
-    public ResponseEntity<String> signUpUser(@RequestBody User user) {
+    public SuccessResponse signUpUser(@RequestBody User user) {
         int result = userService.signUpUser(user);
         if (result > 0) {
-            return ResponseEntity.ok().build();
+            return SuccessResponse.build(SuccessCode.SIGN_UP_USER);
         } else {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+            throw new CustomException(ErrorCode.SAVE_FAILED);
         }
     }
 
@@ -35,7 +36,7 @@ public class UserController {
         if (userInfo != null) {
             return ResponseEntity.ok().build();
         } else {
-            return ResponseEntity.badRequest().build();
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
     }
 }
