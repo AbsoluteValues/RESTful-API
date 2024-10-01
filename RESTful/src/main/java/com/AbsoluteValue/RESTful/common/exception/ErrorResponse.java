@@ -16,30 +16,30 @@ public class ErrorResponse {
     private String error;
     private String message;
     private String path;
-    private String errorCode;
+    private String code;
     private Map<String, Object> additionalData;
 
     private static String getPathFromRequest(WebRequest request) {
         return request.getDescription(false).substring(4);
     }
 
-    public ErrorResponse(HttpStatus status, String message, WebRequest request, String errorCode) {
+    public ErrorResponse(HttpStatus status, String message, WebRequest request, String error) {
         this.timestamp = LocalDateTime.now();
         this.status = status.value();
         this.error = status.getReasonPhrase();
         this.message = message;
         this.path = getPathFromRequest(request);
-        this.errorCode = errorCode;
+        this.code = error;
         this.additionalData = null;
     }
 
-    public ErrorResponse(HttpStatus status, String message, WebRequest request, String errorCode, Map<String, Object> additionalData) {
+    public ErrorResponse(HttpStatus status, String message, WebRequest request, String code, Map<String, Object> additionalData) {
         this.timestamp = LocalDateTime.now();
         this.status = status.value();
         this.error = status.getReasonPhrase();
         this.message = message;
         this.path = getPathFromRequest(request);
-        this.errorCode = errorCode;
+        this.code = code;
         this.additionalData = additionalData;
     }
 }
