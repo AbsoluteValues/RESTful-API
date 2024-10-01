@@ -19,32 +19,27 @@ public class ErrorResponse {
     private String errorCode;
     private Map<String, Object> additionalData;
 
-
-
-    private ErrorResponse(int status, String error, String message, String path, String errorCode, Map<String, Object> additionalData) {
-        this.timestamp = LocalDateTime.now();
-        this.status = status;
-        this.error = error;
-        this.message = message;
-        this.path = path;
-        this.errorCode = errorCode;
-        this.additionalData = additionalData;
-    }
-
-
-
-    // 경로 추출 메서드
     private static String getPathFromRequest(WebRequest request) {
         return request.getDescription(false).substring(4);
     }
 
-    // 추가 데이터 없음
-    protected static ErrorResponse build(HttpStatus status, String message, WebRequest request, String errorCode) {
-        return new ErrorResponse(status.value(), status.getReasonPhrase(), message, getPathFromRequest(request), errorCode, null);
+    public ErrorResponse(HttpStatus status, String message, WebRequest request, String errorCode) {
+        this.timestamp = LocalDateTime.now();
+        this.status = status.value();
+        this.error = status.getReasonPhrase();
+        this.message = message;
+        this.path = getPathFromRequest(request);
+        this.errorCode = errorCode;
+        this.additionalData = null;
     }
 
-    // 추가 데이터 존재
-    protected static ErrorResponse build(HttpStatus status, String message, WebRequest request, String errorCode, Map<String, Object> additionalData) {
-        return new ErrorResponse(status.value(), status.getReasonPhrase(), message, getPathFromRequest(request), errorCode, additionalData);
+    public ErrorResponse(HttpStatus status, String message, WebRequest request, String errorCode, Map<String, Object> additionalData) {
+        this.timestamp = LocalDateTime.now();
+        this.status = status.value();
+        this.error = status.getReasonPhrase();
+        this.message = message;
+        this.path = getPathFromRequest(request);
+        this.errorCode = errorCode;
+        this.additionalData = additionalData;
     }
 }

@@ -1,5 +1,6 @@
 package com.AbsoluteValue.RESTful.user.service.impl;
 
+import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.mapper.UserMapper;
 import com.AbsoluteValue.RESTful.user.service.UserService;
 import com.AbsoluteValue.RESTful.user.vo.User;
@@ -17,14 +18,14 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public int signUpUser(User user) {
-        int result = userMapper.signUpUser(user);
+    public int signUpUser(SignUpUserRequest signUpUserRequest) {
+        int result = userMapper.signUpUser(signUpUserRequest);
         return result;
     }
 
     @Override
-    public User profileUser(String id) {
-        User userInfo = userMapper.profileUser(id);
+    public User getUserInfo(String id) {
+        User userInfo = userMapper.getUserInfo(id);
         return userInfo;
     }
 }

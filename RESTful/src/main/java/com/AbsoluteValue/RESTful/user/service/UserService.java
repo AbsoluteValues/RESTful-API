@@ -1,5 +1,6 @@
 package com.AbsoluteValue.RESTful.user.service;
 
+import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.vo.User;
 
 public interface UserService {
@@ -9,12 +10,12 @@ public interface UserService {
      * @param user
      * @return int
      */
-    int signUpUser(User user);
+    int signUpUser(SignUpUserRequest signUpUserRequest);
 
     /**
      * 회원 정보 조회 Service
      * @param id
      * @return int
      */
-    User profileUser(String id);
+    User getUserInfo(String id);
 }

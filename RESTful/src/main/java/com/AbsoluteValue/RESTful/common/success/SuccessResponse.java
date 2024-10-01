@@ -1,10 +1,25 @@
 package com.AbsoluteValue.RESTful.common.success;
 
-import org.springframework.http.HttpStatus;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public record SuccessResponse(HttpStatus status, String message, String code) {
+@NoArgsConstructor
+@Getter
+public class SuccessResponse {
 
-    public static SuccessResponse build(SuccessCode successCode) {
-        return new SuccessResponse(successCode.getStatus(), successCode.getMessage(), successCode.getData());
+    private int status;
+    private String message;
+    private Object data;
+
+    public SuccessResponse(SuccessCode successCode) {
+        this.status = successCode.getStatus().value();
+        this.message = successCode.getMessage();
+        this.data = null;
+    }
+
+    public SuccessResponse(SuccessCode successCode, Object data) {
+        this.status = successCode.getStatus().value();
+        this.message = successCode.getMessage();
+        this.data = data;
     }
 }

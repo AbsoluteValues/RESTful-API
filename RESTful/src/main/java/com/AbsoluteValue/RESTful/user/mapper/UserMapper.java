@@ -1,5 +1,6 @@
 package com.AbsoluteValue.RESTful.user.mapper;
 
+import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.vo.User;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -8,15 +9,15 @@ public interface UserMapper {
 
     /**
      * 회원 가입 Mapper
-     * @param user
+     * @param signUpUserRequest
      * @return int
      */
-    int signUpUser(User user);
+    int signUpUser(SignUpUserRequest signUpUserRequest);
 
     /**
      * 회원 정보 조회 Mapper
      * @param id
      * @return int
      */
-    User profileUser(String id);
+    User getUserInfo(String id);
 }

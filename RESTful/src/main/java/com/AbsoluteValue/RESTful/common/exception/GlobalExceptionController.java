@@ -35,7 +35,7 @@ public class GlobalExceptionController {
     private ErrorResponse handleGlobalException(Exception ex, WebRequest request) {
         logger.error("예기치 못한 예외 발생: ", ex);
 
-        return ErrorResponse.build(
+        return new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "예상하지 못한 에러가 발생하였습니다. 즉시 해결하세요.",
                 request,
@@ -65,7 +65,7 @@ public class GlobalExceptionController {
             errors.put(error.getField(), error.getDefaultMessage());
         }
 
-        return ErrorResponse.build(
+        return new ErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 "데이터 검증 에러가 발생하였습니다.",
                 request,
@@ -90,7 +90,7 @@ public class GlobalExceptionController {
     private ErrorResponse handleDataAccessException(DataAccessException ex, WebRequest request) {
         logger.error("데이터 접근 예외 발생: ", ex);
 
-        return ErrorResponse.build(
+        return new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "데이터베이스 오류가 발생했습니다.",
                 request,
@@ -113,7 +113,7 @@ public class GlobalExceptionController {
     private ErrorResponse handleNoHandlerFoundException(NoResourceFoundException ex, WebRequest request) {
         logger.warn("처리할 수 없는 요청: ", ex);
 
-        return ErrorResponse.build(
+        return new ErrorResponse(
                 HttpStatus.NOT_FOUND,
                 "요청한 리소스를 찾을 수 없습니다.",
                 request,
@@ -163,7 +163,7 @@ public class GlobalExceptionController {
     private ErrorResponse handleCustomException(CustomException ex, WebRequest request) {
         logger.warn("커스텀 예외 발생: ", ex);
 
-        return ErrorResponse.build(
+        return new ErrorResponse(
                 ex.getErrorCode().getStatus(),
                 ex.getErrorCode().getMessage(),
                 request,
