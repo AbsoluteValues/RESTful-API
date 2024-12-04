@@ -4,23 +4,21 @@ import com.AbsoluteValue.RESTful.common.exception.CustomException;
 import com.AbsoluteValue.RESTful.common.exception.ErrorCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
-import com.AbsoluteValue.RESTful.user.dto.GetUserInfoResponse;
+import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.service.UserService;
 import com.AbsoluteValue.RESTful.user.vo.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class UserController {
 
-    private UserService userService;
-
-    public UserController() {}
-    @Autowired
-    public UserController(UserService userService) { this.userService = userService; }
+    private final UserService userService;
 
     @PostMapping("/user")
     public SuccessResponse signUpUser(@RequestBody SignUpUserRequest signUpUserRequest) {
@@ -33,15 +31,18 @@ public class UserController {
     }
 
     @GetMapping("/user/profile/{id}")
-    public SuccessResponse getUserInfo(@PathVariable String id) {
-        User userInfo = userService.getUserInfo(id);
-        if (userInfo != null) {
-            GetUserInfoResponse response = new GetUserInfoResponse();
-            response.setId(userInfo.getId());
-            response.setNickname(userInfo.getNickname());
+    public SuccessResponse getUser(@PathVariable String id) {
+        GetUserResponse response = userService.getUser(id);
+        if (response != null) {
             return new SuccessResponse(SuccessCode.GET_USER_INFO, response);
         } else {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
+    }
+
+    @GetMapping("/users")
+    public SuccessResponse getUsers() {
+        List<GetUserResponse> response = userService.getUsers();
+        return new SuccessResponse(SuccessCode.GET_USER_INFO, response);
     }
 }

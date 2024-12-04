@@ -1,16 +1,17 @@
 package com.AbsoluteValue.RESTful.user.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
+import com.AbsoluteValue.RESTful.user.vo.User;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class SignUpUserRequest {
-
-    private String id;
-    private String password;
-    private String nickname;
+public record SignUpUserRequest (
+    String id,
+    String password,
+    String nickname
+) {
+    public User toEntity() {
+        return User.builder()
+                .id(id)
+                .password(password)
+                .nickname(nickname)
+                .build();
+    }
 }

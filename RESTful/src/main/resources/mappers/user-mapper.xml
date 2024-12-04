@@ -9,8 +9,12 @@
         INSERT INTO USER_TBL VALUES (#{id}, #{password}, #{nickname}, null, null, null, null)
     </insert>
 
-    <select id="getUserInfo" resultType="User">
+    <select id="getUser" resultType="User">
         SELECT * FROM USER_TBL WHERE ID = #{id}
+    </select>
+    
+    <select id="getUsers" resultType="User">
+        SELECT * FROM USER_TBL
     </select>
 
 </mapper>
