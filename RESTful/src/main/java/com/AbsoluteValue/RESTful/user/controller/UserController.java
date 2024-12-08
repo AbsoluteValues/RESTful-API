@@ -24,7 +24,7 @@ public class UserController {
     public SuccessResponse signUpUser(@RequestBody SignUpUserRequest signUpUserRequest) {
         int result = userService.signUpUser(signUpUserRequest);
         if (result > 0) {
-            return new SuccessResponse(SuccessCode.SIGN_UP_USER);
+            return new SuccessResponse(SuccessCode.REGISTER_SUCCESS);
         } else {
             throw new CustomException(ErrorCode.SAVE_FAILED);
         }
@@ -34,15 +34,15 @@ public class UserController {
     public SuccessResponse getUser(@PathVariable String id) {
         GetUserResponse response = userService.getUser(id);
         if (response != null) {
-            return new SuccessResponse(SuccessCode.GET_USER_INFO, response);
+            return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
         } else {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+            throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
         }
     }
 
     @GetMapping("/users")
     public SuccessResponse getUsers() {
         List<GetUserResponse> response = userService.getUsers();
-        return new SuccessResponse(SuccessCode.GET_USER_INFO, response);
+        return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
     }
 }
