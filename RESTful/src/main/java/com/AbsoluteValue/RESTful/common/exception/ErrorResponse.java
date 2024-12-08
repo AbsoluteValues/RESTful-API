@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.WebRequest;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -23,13 +24,13 @@ public class ErrorResponse {
         return request.getDescription(false).substring(4);
     }
 
-    public ErrorResponse(HttpStatus status, String message, WebRequest request, String error) {
+    public ErrorResponse(HttpStatus status, String message, WebRequest request, String code) {
         this.timestamp = LocalDateTime.now();
         this.status = status.value();
         this.error = status.getReasonPhrase();
         this.message = message;
         this.path = getPathFromRequest(request);
-        this.code = error;
+        this.code = code;
         this.additionalData = null;
     }
 
