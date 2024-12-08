@@ -19,12 +19,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int signUpUser(SignUpUserRequest signUpUserRequest) {
-        User user = SignUpUserRequest.toEntity();
-//        User user = User.builder()
-//                .id(signUpUserRequest.id())
-//                .password(signUpUserRequest.password())
-//                .nickname(signUpUserRequest.nickname())
-//                .build();
+        User user = User.builder()
+                .id(signUpUserRequest.id())
+                .password(signUpUserRequest.password())
+                .nickname(signUpUserRequest.nickname())
+                .build();
         return userMapper.signUpUser(user);
     }
 

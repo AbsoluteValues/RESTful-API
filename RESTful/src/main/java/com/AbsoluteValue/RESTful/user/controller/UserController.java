@@ -7,7 +7,6 @@ import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
 import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.service.UserService;
-import com.AbsoluteValue.RESTful.user.vo.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

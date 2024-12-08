@@ -2,7 +2,6 @@ package com.AbsoluteValue.RESTful.user.service;
 
 import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
-import com.AbsoluteValue.RESTful.user.vo.User;
 
 import java.util.List;
 
