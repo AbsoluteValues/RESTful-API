@@ -8,8 +8,8 @@ spring:
     name: RESTful
 
   datasource:
-    driver-class-name: oracle.jdbc.driver.OracleDriver
-    url: jdbc:oracle:thin:@localhost:1521:XE
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/restful
     username: restful
     password: restful
 
