@@ -2,14 +2,12 @@ package com.AbsoluteValue.RESTful.user.service.impl;
 
 import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
+import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.mapper.UserMapper;
 import com.AbsoluteValue.RESTful.user.service.UserService;
-import com.AbsoluteValue.RESTful.user.vo.User;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,12 +28,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public GetUserResponse getUser(String id) {
         User user = userMapper.getUser(id);
-        return GetUserResponse.from(user);
+        return new GetUserResponse(user.getId(), user.getNickname());
     }
 
     @Override
-    public List<GetUserResponse> getUsers() {
+    public List<User> getUsers() {
         List<User> users = userMapper.getUsers();
-        return Collections.singletonList(GetUserResponse.from((User) users));
+        return users;
     }
 }

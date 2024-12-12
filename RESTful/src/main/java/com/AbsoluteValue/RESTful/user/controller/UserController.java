@@ -6,11 +6,16 @@ import com.AbsoluteValue.RESTful.common.success.SuccessCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
 import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
+import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
@@ -41,7 +46,7 @@ public class UserController {
 
     @GetMapping("/users")
     public SuccessResponse getUsers() {
-        List<GetUserResponse> response = userService.getUsers();
+        List<User> response = userService.getUsers();
         return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
     }
 }
