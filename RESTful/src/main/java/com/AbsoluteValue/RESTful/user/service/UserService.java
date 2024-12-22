@@ -13,7 +13,7 @@ public interface UserService {
      * @param signUpUserRequest
      * @return int
      */
-    int signUpUser(SignUpUserRequest signUpUserRequest);
+    Object signUpUser(SignUpUserRequest signUpUserRequest);
 
     /**
      * 회원 정보 단건 조회 Service

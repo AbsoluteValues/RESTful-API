@@ -10,18 +10,36 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-  
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL57Dialect
+        dialect.storage_engine: innodb
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/restful
     username: restful
     password: restful
+    hikari:
+      jdbc-url: jdbc:h2:mem://localhost/~/testes;MODE=MYSQL
 
   devtools:
     livereload:
       enabled: true
     restart:
       enabled: true
+
+
+
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
 
 
 

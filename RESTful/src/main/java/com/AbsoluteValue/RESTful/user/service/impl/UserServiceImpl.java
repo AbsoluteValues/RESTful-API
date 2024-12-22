@@ -4,7 +4,9 @@ import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.mapper.UserMapper;
+import com.AbsoluteValue.RESTful.user.repository.UserRepository;
 import com.AbsoluteValue.RESTful.user.service.UserService;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,15 +16,17 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+    private final UserRepository userRepository;
 
     @Override
-    public int signUpUser(SignUpUserRequest signUpUserRequest) {
+    @Transactional()
+    public void signUpUser(SignUpUserRequest signUpUserRequest) {
         User user = User.builder()
                 .id(signUpUserRequest.id())
                 .password(signUpUserRequest.password())
                 .nickname(signUpUserRequest.nickname())
                 .build();
-        return userMapper.signUpUser(user);
+        userRepository.save(user);
     }
 
     @Override
