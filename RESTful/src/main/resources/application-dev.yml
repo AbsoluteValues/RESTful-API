@@ -1,0 +1,47 @@
+server:
+  port: 8888
+
+
+
+spring:
+  application:
+    name: RESTful
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/restful
+    username: restful
+    password: restful
+
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+
+
+
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+
+
+
+mybatis:
+  configuration:
+    jdbc-type-for-null: null
+    map-underscore-to-camel-case: true
+  type-aliases-package: com.AbsoluteValue.RESTful
+  mapper-locations: classpath:/mappers/*-mapper.xml

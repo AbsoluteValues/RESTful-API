@@ -1,0 +1,24 @@
+server:
+  port: 8888
+
+
+
+spring:
+  application:
+    name: RESTful
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/restful
+    username: restful
+    password: restful
+
+
+
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: info
