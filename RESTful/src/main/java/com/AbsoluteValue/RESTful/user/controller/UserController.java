@@ -4,7 +4,7 @@ import com.AbsoluteValue.RESTful.common.exception.CustomException;
 import com.AbsoluteValue.RESTful.common.exception.ErrorCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
-import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
+import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.service.UserService;
@@ -46,7 +46,7 @@ public class UserController {
 
     @GetMapping("/users")
     public SuccessResponse getUsers() {
-        List<User> response = userService.getUsers();
+        List<FindUserResponse> response = userService.findUsers();
         return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
     }
 }

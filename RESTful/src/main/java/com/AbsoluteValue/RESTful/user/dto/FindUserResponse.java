@@ -1,6 +1,6 @@
 package com.AbsoluteValue.RESTful.user.dto;
 
-public record GetUserResponse(
+public record FindUserResponse(
         String id,
         String nickname
 ) {

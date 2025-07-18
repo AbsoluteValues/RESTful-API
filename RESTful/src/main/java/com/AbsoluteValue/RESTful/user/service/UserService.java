@@ -1,6 +1,6 @@
 package com.AbsoluteValue.RESTful.user.service;
 
-import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
+import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.entity.User;
 import java.util.List;
@@ -19,14 +19,14 @@ public interface UserService {
      * 회원 정보 단건 조회 Service
      *
      * @param id
-     * @return GetUserInfoResponse
+     * @return FindUserResponse
      */
-    GetUserResponse getUser(String id);
+    FindUserResponse findUser(String id);
 
     /**
      * 회원 정보 다건 조회 Service
      *
-     * @return List<GetUserInfoResponse>
+     * @return List<FindUserResponse>
      */
-    List<User> getUsers();
+    List<FindUserResponse> findUsers();
 }
