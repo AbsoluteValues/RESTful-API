@@ -1,12 +1,9 @@
 package com.AbsoluteValue.RESTful.user.controller;
 
-import com.AbsoluteValue.RESTful.common.exception.CustomException;
-import com.AbsoluteValue.RESTful.common.exception.ErrorCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
 import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
-import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,22 +23,14 @@ public class UserController {
 
     @PostMapping("/user")
     public SuccessResponse signUpUser(@RequestBody SignUpUserRequest signUpUserRequest) {
-        int result = userService.signUpUser(signUpUserRequest);
-        if (result > 0) {
-            return new SuccessResponse(SuccessCode.REGISTER_SUCCESS);
-        } else {
-            throw new CustomException(ErrorCode.SAVE_FAILED);
-        }
+        userService.signUpUser(signUpUserRequest);
+        return new SuccessResponse(SuccessCode.REGISTER_SUCCESS);
     }
 
     @GetMapping("/user/profile/{id}")
-        GetUserResponse response = userService.getUser(id);
-        if (response != null) {
-            return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
-        } else {
-            throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
-        }
     public SuccessResponse findUser(@PathVariable String id) {
+        FindUserResponse response = userService.findUser(id);
+        return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
     }
 
     @GetMapping("/users")
