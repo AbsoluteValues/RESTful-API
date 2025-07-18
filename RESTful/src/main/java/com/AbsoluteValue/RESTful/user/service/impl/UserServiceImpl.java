@@ -1,8 +1,8 @@
 package com.AbsoluteValue.RESTful.user.service.impl;
 
-import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
 import com.AbsoluteValue.RESTful.common.converter.ConverterUtil;
 import com.AbsoluteValue.RESTful.user.converter.UserToDtoConverter;
+import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.repository.UserRepository;
