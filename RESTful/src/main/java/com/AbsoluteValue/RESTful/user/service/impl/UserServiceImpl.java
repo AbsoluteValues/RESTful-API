@@ -1,6 +1,8 @@
 package com.AbsoluteValue.RESTful.user.service.impl;
 
 import com.AbsoluteValue.RESTful.user.dto.GetUserResponse;
+import com.AbsoluteValue.RESTful.common.converter.ConverterUtil;
+import com.AbsoluteValue.RESTful.user.converter.UserToDtoConverter;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.repository.UserRepository;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserToDtoConverter userToDtoConverter;
 
     @Override
     @Transactional()
@@ -31,11 +34,13 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.getUser(id);
         return new GetUserResponse(user.getId(), user.getNickname());
     public FindUserResponse findUser(String id) {
+        return userToDtoConverter.convert(user);
     }
 
     @Override
         List<User> users = userMapper.getUsers();
         return users;
     public List<FindUserResponse> findUsers() {
+        return ConverterUtil.convertList(users, userToDtoConverter);
     }
 }
