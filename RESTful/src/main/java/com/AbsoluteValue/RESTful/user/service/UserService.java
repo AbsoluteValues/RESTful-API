@@ -2,7 +2,6 @@ package com.AbsoluteValue.RESTful.user.service;
 
 import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
-import com.AbsoluteValue.RESTful.user.entity.User;
 import java.util.List;
 
 public interface UserService {
@@ -11,9 +10,9 @@ public interface UserService {
      * 회원 가입 Service
      *
      * @param signUpUserRequest
-     * @return int
+     * @return void
      */
-    Object signUpUser(SignUpUserRequest signUpUserRequest);
+    void signUpUser(SignUpUserRequest signUpUserRequest);
 
     /**
      * 회원 정보 단건 조회 Service
