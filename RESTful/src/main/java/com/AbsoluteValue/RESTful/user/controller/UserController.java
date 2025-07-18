@@ -35,17 +35,17 @@ public class UserController {
     }
 
     @GetMapping("/user/profile/{id}")
-    public SuccessResponse getUser(@PathVariable String id) {
         GetUserResponse response = userService.getUser(id);
         if (response != null) {
             return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
         } else {
             throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
         }
+    public SuccessResponse findUser(@PathVariable String id) {
     }
 
     @GetMapping("/users")
-    public SuccessResponse getUsers() {
+    public SuccessResponse findUsers() {
         List<FindUserResponse> response = userService.findUsers();
         return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
     }

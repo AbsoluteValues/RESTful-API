@@ -30,14 +30,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GetUserResponse getUser(String id) {
         User user = userMapper.getUser(id);
         return new GetUserResponse(user.getId(), user.getNickname());
+    public FindUserResponse findUser(String id) {
     }
 
     @Override
-    public List<User> getUsers() {
         List<User> users = userMapper.getUsers();
         return users;
+    public List<FindUserResponse> findUsers() {
     }
 }
