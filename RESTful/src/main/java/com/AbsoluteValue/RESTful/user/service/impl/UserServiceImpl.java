@@ -36,16 +36,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-        User user = userMapper.getUser(id);
-        return new GetUserResponse(user.getId(), user.getNickname());
     public FindUserResponse findUser(String id) {
+        User user = userRepository.findUserById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
         return userToDtoConverter.convert(user);
     }
 
     @Override
-        List<User> users = userMapper.getUsers();
-        return users;
     public List<FindUserResponse> findUsers() {
+        List<User> users = userRepository.findAll();
         return ConverterUtil.convertList(users, userToDtoConverter);
     }
 }
