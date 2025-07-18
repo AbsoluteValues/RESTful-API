@@ -1,6 +1,8 @@
 package com.AbsoluteValue.RESTful.user.service.impl;
 
 import com.AbsoluteValue.RESTful.common.converter.ConverterUtil;
+import com.AbsoluteValue.RESTful.common.exception.CustomException;
+import com.AbsoluteValue.RESTful.common.exception.ErrorCode;
 import com.AbsoluteValue.RESTful.user.converter.UserToDtoConverter;
 import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
@@ -22,6 +24,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void signUpUser(SignUpUserRequest signUpUserRequest) {
+        if (userRepository.existsUserById(signUpUserRequest.id())) {
+            throw new CustomException(ErrorCode.SAVE_FAILED);
+        }
         User user = User.builder()
                 .id(signUpUserRequest.id())
                 .password(signUpUserRequest.password())
