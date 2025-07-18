@@ -49,10 +49,12 @@ dependencies {
 
 def generated = 'src/main/generated'
 
+// querydsl QClass 파일 생성 위치를 지정
 tasks.withType(JavaCompile).configureEach {
     options.getGeneratedSourceOutputDirectory().set(file(generated))
 }
 
+// gradle class 시에 QClass 디렉토리 삭제
 clean {
     delete file(generated)
 }
