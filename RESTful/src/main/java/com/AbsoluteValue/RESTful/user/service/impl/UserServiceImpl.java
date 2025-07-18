@@ -7,10 +7,10 @@ import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.entity.User;
 import com.AbsoluteValue.RESTful.user.repository.UserRepository;
 import com.AbsoluteValue.RESTful.user.service.UserService;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
