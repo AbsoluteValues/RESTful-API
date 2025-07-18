@@ -20,7 +20,7 @@ public class UserServiceImpl implements UserService {
     private final UserToDtoConverter userToDtoConverter;
 
     @Override
-    @Transactional()
+    @Transactional(rollbackFor = Exception.class)
     public void signUpUser(SignUpUserRequest signUpUserRequest) {
         User user = User.builder()
                 .id(signUpUserRequest.id())
