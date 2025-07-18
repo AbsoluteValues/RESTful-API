@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FindUserResponse findUser(String id) {
         User user = userRepository.findUserById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
@@ -43,6 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<FindUserResponse> findUsers() {
         List<User> users = userRepository.findAll();
         return ConverterUtil.convertList(users, userToDtoConverter);
