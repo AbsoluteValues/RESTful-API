@@ -36,12 +36,3 @@ logging:
         type:
           descriptor:
             sql: trace
-
-
-
-mybatis:
-  configuration:
-    jdbc-type-for-null: null
-    map-underscore-to-camel-case: true
-  type-aliases-package: com.AbsoluteValue.RESTful
-  mapper-locations: classpath:/mappers/*-mapper.xml
