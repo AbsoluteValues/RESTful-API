@@ -14,8 +14,8 @@ public enum ErrorCode {
     // 404 잘못된 리소스 접근
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 정보입니다.", "173"),
 
-    // 500 데이터 저장 오류
-    SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "데이터 저장을 실패했습니다.", "096"),
+    // 400 데이터 저장 오류
+    SAVE_FAILED(HttpStatus.BAD_REQUEST, "이미 존재하는 정보입니다.", "096"),
 
     // 500 데이터 수정 오류
     UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "데이터 수정을 실패했습니다.", "049"),
