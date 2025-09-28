@@ -1,12 +1,13 @@
 package com.AbsoluteValue.RESTful.common.exception;
 
+import com.AbsoluteValue.RESTful.common.response.code.Code;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public enum ErrorCode {
+public enum ErrorCode implements Code {
 
     // 401 권한 부족
     SESSION_INVALID(HttpStatus.UNAUTHORIZED, "세션에 정보가 없습니다.", "682"),

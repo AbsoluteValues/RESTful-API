@@ -1,12 +1,13 @@
 package com.AbsoluteValue.RESTful.common.success;
 
+import com.AbsoluteValue.RESTful.common.response.code.Code;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public enum SuccessCode {
+public enum SuccessCode implements Code {
 
     REGISTER_SUCCESS(HttpStatus.CREATED, "등록이 완료되었습니다."),
 
