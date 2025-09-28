@@ -1,18 +1,20 @@
 package com.AbsoluteValue.RESTful.common.exception;
 
+import com.AbsoluteValue.RESTful.common.response.ResponseHandler;
+import com.AbsoluteValue.RESTful.common.response.code.impl.GlobalErrorCode;
 import jakarta.mail.MessagingException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionController {
@@ -27,18 +29,17 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 예외 객체. 처리되지 않은 예기치 못한 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태와 메시지를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태와 메시지를 포함합니다.
      */
     @ExceptionHandler(Exception.class)
-    private ErrorResponse handleGlobalException(Exception ex, WebRequest request) {
+    private ResponseEntity<ErrorResponse> handleGlobalException(
+            Exception ex,
+            WebRequest request
+    ) {
+
         logger.error("예기치 못한 예외 발생: ", ex);
 
-        return new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "예상하지 못한 에러가 발생하였습니다. 즉시 해결하세요.",
-                request,
-                "001"
-        );
+        return ResponseHandler.error(GlobalErrorCode.UNEXPECTED, request);
     }
 
     /**
@@ -49,10 +50,14 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 예외 객체. 유효성 검사 실패와 관련된 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태, 메시지 및 필드별 오류 정보를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 필드별 오류 정보를 포함합니다.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    private ErrorResponse handleMethodArgumentNotValid(MethodArgumentNotValidException ex, WebRequest request) {
+    private ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            WebRequest request
+    ) {
+
         logger.warn("데이터 검증 실패: ", ex);
 
         Map<String, Object> errors = new HashMap<>();
@@ -60,13 +65,7 @@ public class GlobalExceptionController {
             errors.put(error.getField(), error.getDefaultMessage());
         }
 
-        return new ErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                "데이터 검증 에러가 발생하였습니다.",
-                request,
-                "002",
-                Map.of("errors", errors)
-        );
+        return ResponseHandler.error(GlobalErrorCode.METHOD_ARGUMENT_NOT_VALID, request, Map.of("errors", errors));
     }
 
     /**
@@ -77,18 +76,17 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 예외 객체. 데이터베이스 접근 관련 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태와 메시지를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태와 메시지를 포함합니다.
      */
     @ExceptionHandler(DataAccessException.class)
-    private ErrorResponse handleDataAccessException(DataAccessException ex, WebRequest request) {
+    private ResponseEntity<ErrorResponse> handleDataAccessException(
+            DataAccessException ex,
+            WebRequest request
+    ) {
+
         logger.error("데이터 접근 예외 발생: ", ex);
 
-        return new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "데이터베이스 오류가 발생했습니다.",
-                request,
-                "003"
-        );
+        return ResponseHandler.error(GlobalErrorCode.DATA_ACCESS, request);
     }
 
     /**
@@ -99,18 +97,17 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 예외 객체. 요청한 리소스를 찾을 수 없는 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태, 메시지 및 관련 정보를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 관련 정보를 포함합니다.
      */
-    @ExceptionHandler(NoResourceFoundException.class)
-    private ErrorResponse handleNoHandlerFoundException(NoResourceFoundException ex, WebRequest request) {
+    @ExceptionHandler(NoHandlerFoundException.class)
+    private ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
+            NoHandlerFoundException ex,
+            WebRequest request
+    ) {
+
         logger.warn("처리할 수 없는 요청: ", ex);
 
-        return new ErrorResponse(
-                HttpStatus.NOT_FOUND,
-                "요청한 리소스를 찾을 수 없습니다.",
-                request,
-                "004"
-        );
+        return ResponseHandler.error(GlobalErrorCode.NO_HANDLER_FOUND, request);
     }
 
     /**
@@ -121,18 +118,17 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 예외 객체. 메시지 처리 중 발생한 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태, 메시지 및 관련 정보를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 관련 정보를 포함합니다.
      */
     @ExceptionHandler(MessagingException.class)
-    private ErrorResponse handleMessagingException(MessagingException ex, WebRequest request) {
+    private ResponseEntity<ErrorResponse> handleMessagingException(
+            MessagingException ex,
+            WebRequest request
+    ) {
+
         logger.warn("메시지 처리 중 예외 발생: ", ex);
 
-        return new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "서버에서 요청을 처리하던 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-                request,
-                "005"
-        );
+        return ResponseHandler.error(GlobalErrorCode.MESSAGING, request);
     }
 
     // (Spring Security 적용 필수)
@@ -144,18 +140,17 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 예외 객체. 접근 권한이 없는 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태, 메시지 및 요청 경로 정보를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 요청 경로 정보를 포함합니다.
      */
 //    @ExceptionHandler(AccessDeniedException.class)
-//    public ErrorResponse handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+//    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+//            AccessDeniedException ex,
+//            WebRequest request
+//    ) {
+//
 //        logger.warn("접근 불가: ", ex);
 //
-//        return ErrorResponse.build(
-//                HttpStatus.FORBIDDEN,
-//                "요청한 리소스에 접근할 권한이 없습니다.",
-//                getPathFromRequest(request),
-//                "006"
-//        );
+//        return ResponseHandler.error(GlobalErrorCode.ACCESS_DENIED, request);
 //    }
 
     /**
@@ -167,17 +162,16 @@ public class GlobalExceptionController {
      *
      * @param ex      발생한 커스텀 예외 객체. 비즈니스 로직에 의해 정의된 예외.
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
-     * @return ErrorResponse 오류 응답 객체. 에러 상태, 메시지 및 에러 코드를 포함합니다.
+     * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 에러 코드를 포함합니다.
      */
     @ExceptionHandler(CustomException.class)
-    private ErrorResponse handleCustomException(CustomException ex, WebRequest request) {
+    private ResponseEntity<ErrorResponse> handleCustomException(
+            CustomException ex,
+            WebRequest request
+    ) {
+
         logger.warn("커스텀 예외 발생: ", ex);
 
-        return new ErrorResponse(
-                ex.getErrorCode().getStatus(),
-                ex.getErrorCode().getMessage(),
-                request,
-                ex.getErrorCode().getErrorCode()
-        );
+        return ResponseHandler.error(ex.getErrorCode(), request);
     }
 }

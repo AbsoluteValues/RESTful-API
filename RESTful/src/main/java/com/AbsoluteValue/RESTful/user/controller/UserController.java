@@ -1,5 +1,6 @@
 package com.AbsoluteValue.RESTful.user.controller;
 
+import com.AbsoluteValue.RESTful.common.response.ResponseHandler;
 import com.AbsoluteValue.RESTful.common.success.SuccessCode;
 import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
 import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,20 +26,20 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/user")
-    public SuccessResponse signUpUser(@RequestBody @Valid SignUpUserRequest signUpUserRequest) {
+    public ResponseEntity<SuccessResponse> signUpUser(@RequestBody @Valid SignUpUserRequest signUpUserRequest) {
         userService.signUpUser(signUpUserRequest);
-        return new SuccessResponse(SuccessCode.REGISTER_SUCCESS);
+        return ResponseHandler.success(SuccessCode.REGISTER_SUCCESS);
     }
 
     @GetMapping("/user/profile/{id}")
-    public SuccessResponse findUser(@PathVariable @NotBlank String id) {
+    public ResponseEntity<SuccessResponse> findUser(@PathVariable @NotBlank String id) {
         FindUserResponse response = userService.findUser(id);
-        return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
+        return ResponseHandler.success(SuccessCode.RESOURCE_FOUND, response);
     }
 
     @GetMapping("/users")
-    public SuccessResponse findUsers() {
+    public ResponseEntity<SuccessResponse> findUsers() {
         List<FindUserResponse> response = userService.findUsers();
-        return new SuccessResponse(SuccessCode.RESOURCE_FOUND, response);
+        return ResponseHandler.success(SuccessCode.RESOURCE_FOUND, response);
     }
 }
