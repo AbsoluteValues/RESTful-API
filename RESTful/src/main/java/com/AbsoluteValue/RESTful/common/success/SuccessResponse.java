@@ -1,5 +1,7 @@
 package com.AbsoluteValue.RESTful.common.success;
 
+import com.AbsoluteValue.RESTful.common.response.code.Code;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -7,19 +9,15 @@ import lombok.NoArgsConstructor;
 @Getter
 public class SuccessResponse {
 
+    private LocalDateTime timestamp;
     private int status;
     private String message;
     private Object data;
 
-    public SuccessResponse(SuccessCode successCode) {
-        this.status = successCode.getStatus().value();
-        this.message = successCode.getMessage();
-        this.data = null;
-    }
-
-    public SuccessResponse(SuccessCode successCode, Object data) {
-        this.status = successCode.getStatus().value();
-        this.message = successCode.getMessage();
+    public SuccessResponse(Code code, Object data) {
+        this.timestamp = LocalDateTime.now();
+        this.status = code.getStatus().value();
+        this.message = code.getMessage();
         this.data = data;
     }
 }

@@ -1,10 +1,10 @@
 package com.AbsoluteValue.RESTful.common.exception;
 
+import com.AbsoluteValue.RESTful.common.response.code.Code;
 import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.WebRequest;
 
 @NoArgsConstructor
@@ -23,23 +23,13 @@ public class ErrorResponse {
         return request.getDescription(false).replace("uri=", "");
     }
 
-    public ErrorResponse(HttpStatus status, String message, WebRequest request, String code) {
+    public ErrorResponse(Code code, WebRequest request, Map<String, Object> additionalData) {
         this.timestamp = LocalDateTime.now();
-        this.status = status.value();
-        this.error = status.getReasonPhrase();
-        this.message = message;
+        this.status = code.getStatus().value();
+        this.error = code.getStatus().getReasonPhrase();
+        this.message = code.getMessage();
         this.path = getPathFromRequest(request);
-        this.code = code;
-        this.additionalData = null;
-    }
-
-    public ErrorResponse(HttpStatus status, String message, WebRequest request, String code, Map<String, Object> additionalData) {
-        this.timestamp = LocalDateTime.now();
-        this.status = status.value();
-        this.error = status.getReasonPhrase();
-        this.message = message;
-        this.path = getPathFromRequest(request);
-        this.code = code;
+        this.code = code.getErrorCode();
         this.additionalData = additionalData;
     }
 }
