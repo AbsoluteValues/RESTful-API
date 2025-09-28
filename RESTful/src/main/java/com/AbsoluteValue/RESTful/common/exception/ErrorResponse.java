@@ -20,7 +20,7 @@ public class ErrorResponse {
     private Map<String, Object> additionalData;
 
     private static String getPathFromRequest(WebRequest request) {
-        return request.getDescription(false).substring(4);
+        return request.getDescription(false).replace("uri=", "");
     }
 
     public ErrorResponse(HttpStatus status, String message, WebRequest request, String code) {
