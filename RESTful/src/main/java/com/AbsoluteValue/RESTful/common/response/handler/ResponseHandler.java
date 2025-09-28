@@ -1,8 +1,8 @@
-package com.AbsoluteValue.RESTful.common.response;
+package com.AbsoluteValue.RESTful.common.response.handler;
 
-import com.AbsoluteValue.RESTful.common.exception.ErrorResponse;
 import com.AbsoluteValue.RESTful.common.response.code.Code;
-import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
+import com.AbsoluteValue.RESTful.common.response.dto.ErrorResponse;
+import com.AbsoluteValue.RESTful.common.response.dto.SuccessResponse;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.WebRequest;

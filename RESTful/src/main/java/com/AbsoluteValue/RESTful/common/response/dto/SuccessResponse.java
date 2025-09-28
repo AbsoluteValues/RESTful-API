@@ -1,4 +1,4 @@
-package com.AbsoluteValue.RESTful.common.success;
+package com.AbsoluteValue.RESTful.common.response.dto;
 
 import com.AbsoluteValue.RESTful.common.response.code.Code;
 import java.time.LocalDateTime;

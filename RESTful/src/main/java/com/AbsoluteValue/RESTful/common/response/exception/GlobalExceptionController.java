@@ -1,7 +1,8 @@
-package com.AbsoluteValue.RESTful.common.exception;
+package com.AbsoluteValue.RESTful.common.response.exception;
 
-import com.AbsoluteValue.RESTful.common.response.ResponseHandler;
-import com.AbsoluteValue.RESTful.common.response.code.impl.GlobalErrorCode;
+import com.AbsoluteValue.RESTful.common.response.code.GlobalErrorCode;
+import com.AbsoluteValue.RESTful.common.response.dto.ErrorResponse;
+import com.AbsoluteValue.RESTful.common.response.handler.ResponseHandler;
 import jakarta.mail.MessagingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionController {
@@ -164,9 +165,9 @@ public class GlobalExceptionController {
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
      * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 에러 코드를 포함합니다.
      */
-    @ExceptionHandler(CustomException.class)
+    @ExceptionHandler(BusinessException.class)
     private ResponseEntity<ErrorResponse> handleCustomException(
-            CustomException ex,
+            BusinessException ex,
             WebRequest request
     ) {
 

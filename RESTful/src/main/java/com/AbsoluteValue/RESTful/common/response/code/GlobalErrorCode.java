@@ -1,6 +1,5 @@
-package com.AbsoluteValue.RESTful.common.response.code.impl;
+package com.AbsoluteValue.RESTful.common.response.code;
 
-import com.AbsoluteValue.RESTful.common.response.code.Code;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

@@ -1,8 +1,8 @@
 package com.AbsoluteValue.RESTful.user.controller;
 
-import com.AbsoluteValue.RESTful.common.response.ResponseHandler;
-import com.AbsoluteValue.RESTful.common.success.SuccessCode;
-import com.AbsoluteValue.RESTful.common.success.SuccessResponse;
+import com.AbsoluteValue.RESTful.common.response.code.SuccessCode;
+import com.AbsoluteValue.RESTful.common.response.dto.SuccessResponse;
+import com.AbsoluteValue.RESTful.common.response.handler.ResponseHandler;
 import com.AbsoluteValue.RESTful.user.dto.FindUserResponse;
 import com.AbsoluteValue.RESTful.user.dto.SignUpUserRequest;
 import com.AbsoluteValue.RESTful.user.service.UserService;
