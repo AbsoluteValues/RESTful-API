@@ -15,7 +15,7 @@ public enum GlobalErrorCode implements Code {
 
     DATA_ACCESS(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다.", "003"),
 
-    NO_HANDLER_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다.", "004"),
+    NO_RESOURCE_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다.", "004"),
 
     MESSAGING(HttpStatus.INTERNAL_SERVER_ERROR, "서버에서 요청을 처리하던 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.", "005"),
 

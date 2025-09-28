@@ -99,15 +99,15 @@ public class GlobalExceptionController {
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
      * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 관련 정보를 포함합니다.
      */
-    @ExceptionHandler(NoHandlerFoundException.class)
-    private ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
-            NoHandlerFoundException ex,
+    @ExceptionHandler(NoResourceFoundException.class)
+    private ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+            NoResourceFoundException ex,
             WebRequest request
     ) {
 
         logger.warn("처리할 수 없는 요청: ", ex);
 
-        return ResponseHandler.error(GlobalErrorCode.NO_HANDLER_FOUND, request);
+        return ResponseHandler.error(GlobalErrorCode.NO_RESOURCE_FOUND, request);
     }
 
     /**
