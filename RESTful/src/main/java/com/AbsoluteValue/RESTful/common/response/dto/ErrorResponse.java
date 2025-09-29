@@ -29,7 +29,7 @@ public class ErrorResponse {
         this.additionalData = additionalData;
     }
 
-    private static String getPathFromRequest(WebRequest request) {
+    private String getPathFromRequest(WebRequest request) {
         return request.getDescription(false).replace("uri=", "");
     }
 }
