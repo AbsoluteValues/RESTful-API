@@ -19,10 +19,6 @@ public class ErrorResponse {
     private String code;
     private Map<String, Object> additionalData;
 
-    private static String getPathFromRequest(WebRequest request) {
-        return request.getDescription(false).replace("uri=", "");
-    }
-
     public ErrorResponse(Code code, WebRequest request, Map<String, Object> additionalData) {
         this.timestamp = LocalDateTime.now();
         this.status = code.getStatus().value();
@@ -31,5 +27,9 @@ public class ErrorResponse {
         this.path = getPathFromRequest(request);
         this.code = code.getErrorCode();
         this.additionalData = additionalData;
+    }
+
+    private static String getPathFromRequest(WebRequest request) {
+        return request.getDescription(false).replace("uri=", "");
     }
 }
