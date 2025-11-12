@@ -1,12 +1,4 @@
-server:
-  port: 8888
-
-
-
 spring:
-  application:
-    name: RESTful
-
   jpa:
     hibernate:
       ddl-auto: update
