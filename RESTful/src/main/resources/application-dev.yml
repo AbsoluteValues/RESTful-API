@@ -15,6 +15,14 @@ spring:
 
 
 
+springdoc:
+  api-docs:
+    path: /api/v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+    url: /api/v3/api-docs
+
+
 
 logging:
   level:
