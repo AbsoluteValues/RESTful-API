@@ -50,7 +50,6 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Querydsl
     implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
@@ -60,6 +59,7 @@ dependencies {
 
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 }
