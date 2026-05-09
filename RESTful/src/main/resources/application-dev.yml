@@ -13,11 +13,6 @@ spring:
     username: restful
     password:
 
-  devtools:
-    livereload:
-      enabled: true
-    restart:
-      enabled: true
 
 
 
