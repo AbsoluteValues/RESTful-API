@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:53277/restful
+    url: jdbc:mysql://mysql9:3306/restful?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: restful
     password:
 
