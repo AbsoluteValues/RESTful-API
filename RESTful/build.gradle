@@ -62,3 +62,20 @@ clean {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+jib {
+    container {
+        mainClass = 'com.AbsoluteValue.RESTful.RestFulApplication'
+    }
+    from {
+        image = 'eclipse-temurin:25-jre-alpine'
+    }
+    to {
+        image = 'absolutevalues/RESTful-api'
+        tags = ['latest']
+        auth {
+            username = envVars["DOCKERHUB_USERNAME"]
+            password = envVars["DOCKERHUB_PASSWORD"]
+        }
+    }
+}
