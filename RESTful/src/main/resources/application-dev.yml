@@ -31,3 +31,19 @@ logging:
         type:
           descriptor:
             sql: trace
+
+
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: RESTful
