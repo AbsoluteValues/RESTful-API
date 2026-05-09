@@ -3,7 +3,7 @@ spring:
     name: RESTful
 
   profiles:
-    active: dev
+    active: local
 
 
 
