@@ -20,6 +20,7 @@ if (envFile.exists()) {
 
 group = 'com.AbsoluteValue'
 version = '0.0.1-SNAPSHOT'
+description = 'RESTful API'
 
 java {
     toolchain {
