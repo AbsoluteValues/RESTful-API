@@ -32,23 +32,30 @@ repositories {
 }
 
 dependencies {
+    // Dependency
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
 
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
+    // Devtools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     // Querydsl
@@ -59,8 +66,14 @@ dependencies {
 
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+
+    // Junit
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Logback
     implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
+
+    // Prometheus
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 }
 
