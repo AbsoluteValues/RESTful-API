@@ -57,6 +57,7 @@ public class SwaggerConfig {
         components.addResponses("Ok", buildApiResponse("Ok", ResponseType.SUCCESS));
         components.addResponses("BadRequest", buildApiResponse("Bad Request", ResponseType.ERROR));
         components.addResponses("Unauthorized", buildApiResponse("Unauthorized", ResponseType.ERROR));
+        components.addResponses("ResourceNotFound", buildApiResponse("Resource Not Found", ResponseType.ERROR));
         components.addResponses("InternalServerError", buildApiResponse("Internal Server Error", ResponseType.ERROR));
     }
 
