@@ -101,6 +101,12 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// Test시 나오는 경고 삭제 용도
+tasks.withType(Test).configureEach {
+    jvmArgs += ["-XX:+EnableDynamicAgentLoading"]
+    jvmArgs += ["-Xshare:off"]
+}
+
 jib {
     container {
         mainClass = 'com.AbsoluteValue.RESTful.RestFulApplication'
