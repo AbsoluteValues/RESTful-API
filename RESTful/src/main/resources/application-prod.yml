@@ -47,4 +47,4 @@ management:
       show-details: always
   metrics:
     tags:
-      application: kiosk
+      application: RESTful
