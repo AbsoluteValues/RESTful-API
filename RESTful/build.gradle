@@ -41,6 +41,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
+    // H2 (Test Database)
+    testRuntimeOnly 'com.h2database:h2'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -76,6 +78,11 @@ dependencies {
 
     // Prometheus
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // jjwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 }
 
 def generated = 'src/main/generated'
@@ -102,7 +109,7 @@ jib {
         image = 'eclipse-temurin:25-jre-alpine'
     }
     to {
-        image = 'absolutevalues/RESTful-api'
+        image = 'absolutevalues/restful-api'
         tags = ['latest']
         auth {
             username = envVars["DOCKERHUB_USERNAME"]
