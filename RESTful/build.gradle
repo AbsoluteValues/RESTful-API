@@ -103,6 +103,6 @@ jib {
     }
     to {
         image = 'absolutevalues/restful-api'
-        tags = ['latest']
+        tags = ['v1.0']
     }
 }
