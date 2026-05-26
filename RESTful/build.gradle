@@ -105,4 +105,7 @@ jib {
         image = 'absolutevalues/restful-api'
         tags = ['v1.0']
     }
+    dockerClient {
+        executable = '/usr/local/bin/docker'
+    }
 }
