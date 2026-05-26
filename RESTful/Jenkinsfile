@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
+    environment {
+        IMAGE_NAME = 'absolutevalues/restful-api'
+        DEPLOY_HOST = 'myhomeservertest.ddns.net'
+        DEPLOY_PORT = '20000'
+        DEPLOY_USER = 'foxy'
+        DEPLOY_DIR = '/home/foxy/docker/springboot/restful'
+    }
+
+    stages {
+        stage('Prepare') {
+            steps {
+                sh 'chmod +x ./gradlew'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh './gradlew clean test'
+            }
+        }
+
+        stage('Build And Push Image') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credential',
+                    usernameVariable: 'DOCKERHUB_USERNAME',
+                    passwordVariable: 'DOCKERHUB_PASSWORD'
+                )]) {
+                    sh '''
+                        ./gradlew jib \
+                          -Djib.to.image=$IMAGE_NAME:latest \
+                          -Djib.to.auth.username=$DOCKERHUB_USERNAME \
+                          -Djib.to.auth.password=$DOCKERHUB_PASSWORD
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sshagent(credentials: ['deploy-ssh-key']) {
+                    sh '''
+                        ssh -p $DEPLOY_PORT -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "
+                          cd $DEPLOY_DIR &&
+                          docker compose pull &&
+                          docker compose up -d
+                        "
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployed $IMAGE_NAME:latest"
+        }
+
+        failure {
+            echo 'Pipeline failed'
+        }
+    }
+}
