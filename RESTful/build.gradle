@@ -104,11 +104,5 @@ jib {
     to {
         image = 'absolutevalues/restful-api'
         tags = ['latest']
-        if (envVars["DOCKERHUB_USERNAME"] && envVars["DOCKERHUB_PASSWORD"]) {
-            auth {
-                username = envVars["DOCKERHUB_USERNAME"]
-                password = envVars["DOCKERHUB_PASSWORD"]
-            }
-        }
     }
 }
