@@ -5,19 +5,6 @@ plugins {
     id 'com.google.cloud.tools.jib' version '3.5.2'
 }
 
-def envFile = file(".env")
-def envVars = [:]
-
-if (envFile.exists()) {
-    envFile.eachLine { line ->
-        line = line.trim()
-        if (line && !line.startsWith("#") && line.contains("=")) {
-            def (key, value) = line.split("=", 2)
-            envVars[key.trim()] = value.trim()
-        }
-    }
-}
-
 group = 'com.AbsoluteValue'
 version = '0.0.1-SNAPSHOT'
 description = 'RESTful API'
@@ -116,12 +103,9 @@ jib {
     }
     to {
         image = 'absolutevalues/restful-api'
-        tags = ['latest']
-        if (envVars["DOCKERHUB_USERNAME"] && envVars["DOCKERHUB_PASSWORD"]) {
-            auth {
-                username = envVars["DOCKERHUB_USERNAME"]
-                password = envVars["DOCKERHUB_PASSWORD"]
-            }
-        }
+        tags = ['v1.0']
+    }
+    dockerClient {
+        executable = '/usr/local/bin/docker'
     }
 }
