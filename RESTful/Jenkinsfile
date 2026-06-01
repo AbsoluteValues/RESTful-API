@@ -18,29 +18,35 @@ pipeline {
     stages {
         stage('Prepare') {
             steps {
-                sh 'chmod +x ./gradlew'
+                dir('RESTful') {
+                    sh 'chmod +x ./gradlew'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh './gradlew clean test'
+                dir('RESTful') {
+                    sh './gradlew clean test'
+                }
             }
         }
 
         stage('Build And Push Image') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credential',
-                    usernameVariable: 'DOCKERHUB_USERNAME',
-                    passwordVariable: 'DOCKERHUB_PASSWORD'
-                )]) {
-                    sh '''
-                        ./gradlew jib \
-                          -Djib.to.image=$IMAGE_NAME:latest \
-                          -Djib.to.auth.username=$DOCKERHUB_USERNAME \
-                          -Djib.to.auth.password=$DOCKERHUB_PASSWORD
-                    '''
+                dir('RESTful') {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-credential',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_PASSWORD'
+                    )]) {
+                        sh '''
+                            ./gradlew jib \
+                              -Djib.to.image=$IMAGE_NAME:latest \
+                              -Djib.to.auth.username=$DOCKERHUB_USERNAME \
+                              -Djib.to.auth.password=$DOCKERHUB_PASSWORD
+                        '''
+                    }
                 }
             }
         }
