@@ -7,23 +7,17 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
 
+    parameters {
+        string(name: 'DEPLOY_HOST', defaultValue: 'myhomedevserver.com', description: 'Deployment server hostname')
+        string(name: 'DEPLOY_PORT', defaultValue: '20000', description: 'Deployment server SSH port')
+        string(name: 'DEPLOY_DIR', defaultValue: '/home/foxy/docker/springboot/restful', description: 'Docker Compose directory on the deployment server')
+    }
+
     environment {
         IMAGE_NAME = 'absolutevalues/restful-api'
-        DEPLOY_HOST = 'myhomeservertest.ddns.net'
-        DEPLOY_PORT = '20000'
-        DEPLOY_USER = 'foxy'
-        DEPLOY_DIR = '/home/foxy/docker/springboot/restful'
     }
 
     stages {
-        stage('Prepare') {
-            steps {
-                dir('RESTful') {
-                    sh 'chmod +x ./gradlew'
-                }
-            }
-        }
-
         stage('Test') {
             steps {
                 dir('RESTful') {
@@ -41,10 +35,8 @@ pipeline {
                         passwordVariable: 'DOCKERHUB_PASSWORD'
                     )]) {
                         sh '''
-                            ./gradlew jib \
-                              -Djib.to.image=$IMAGE_NAME:latest \
-                              -Djib.to.auth.username=$DOCKERHUB_USERNAME \
-                              -Djib.to.auth.password=$DOCKERHUB_PASSWORD
+                            ./gradlew jib --no-daemon \
+                              -Djib.to.image=$IMAGE_NAME:latest
                         '''
                     }
                 }
@@ -53,13 +45,55 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sshagent(credentials: ['deploy-ssh-key']) {
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'deploy-ssh-key',
+                    keyFileVariable: 'SSH_PRIVATE_KEY',
+                    usernameVariable: 'DEPLOY_USER'
+                )]) {
                     sh '''
-                        ssh -p $DEPLOY_PORT -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "
-                          cd $DEPLOY_DIR &&
-                          docker compose pull &&
-                          docker compose up -d
-                        "
+                        set -eu
+                        known_hosts=$(mktemp)
+                        trap 'rm -f "$known_hosts"' EXIT
+
+                        ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > "$known_hosts"
+                        ssh \
+                          -i "$SSH_PRIVATE_KEY" \
+                          -p "$DEPLOY_PORT" \
+                          -o BatchMode=yes \
+                          -o StrictHostKeyChecking=yes \
+                          -o UserKnownHostsFile="$known_hosts" \
+                          "$DEPLOY_USER@$DEPLOY_HOST" \
+                          "set -eu
+                           cd '$DEPLOY_DIR'
+                           docker compose pull springboot
+                           docker compose up -d --no-deps springboot
+
+                           container_id=\$(docker compose ps -q springboot)
+                           if [ -z \"\$container_id\" ]; then
+                               echo 'Spring Boot container was not created.' >&2
+                               exit 1
+                           fi
+
+                           attempt=1
+                           while [ \"\$attempt\" -le 30 ]; do
+                               if docker exec \"\$container_id\" \
+                                   wget -qO- http://127.0.0.1:8081/actuator/health 2>/dev/null \
+                                   | grep -q '\"status\":\"UP\"'; then
+                                   docker compose ps springboot
+                                   exit 0
+                               fi
+
+                               if [ \"\$(docker inspect -f '{{.State.Running}}' \"\$container_id\")\" != 'true' ]; then
+                                   break
+                               fi
+
+                               attempt=\$((attempt + 1))
+                               sleep 2
+                           done
+
+                           echo 'Spring Boot health check failed.' >&2
+                           docker compose logs --tail=100 springboot >&2
+                           exit 1"
                     '''
                 }
             }
