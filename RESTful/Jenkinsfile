@@ -1,3 +1,35 @@
+void sendDiscordNotification(String result, int color) {
+    def appName = params.APP_NAME ?: env.JOB_NAME
+    def imageName = params.IMAGE_NAME ?: 'N/A'
+    def deployHost = params.DEPLOY_HOST ?: 'N/A'
+
+    def payload = groovy.json.JsonOutput.toJson([
+        embeds: [[
+            title      : "${appName} ${result}",
+            description: "${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            url        : env.BUILD_URL,
+            color      : color,
+            fields     : [
+                [name: 'Image', value: "${imageName}:latest", inline: true],
+                [name: 'Deploy Host', value: deployHost, inline: true],
+                [name: 'Branch', value: env.BRANCH_NAME ?: 'N/A', inline: true]
+            ],
+            timestamp  : new Date().format("yyyy-MM-dd'T'HH:mm:ssXXX", TimeZone.getTimeZone('Asia/Seoul'))
+        ]]
+    ])
+
+    writeFile file: 'discord-payload.json', text: payload
+
+    withCredentials([string(credentialsId: 'discord-webhook-url', variable: 'DISCORD_WEBHOOK_URL')]) {
+        sh '''
+            curl -fsS \
+              -H 'Content-Type: application/json' \
+              --data-binary @discord-payload.json \
+              "$DISCORD_WEBHOOK_URL" || echo 'Discord notification failed'
+        '''
+    }
+}
+
 pipeline {
     agent any
 
@@ -5,56 +37,95 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '20'))
+        skipDefaultCheckout(true)
     }
 
-    environment {
-        IMAGE_NAME = 'absolutevalues/restful-api'
-        DEPLOY_HOST = 'myhomeservertest.ddns.net'
-        DEPLOY_PORT = '20000'
-        DEPLOY_USER = 'foxy'
-        DEPLOY_DIR = '/home/foxy/docker/springboot/restful'
+    parameters {
+        string(name: 'APP_NAME', defaultValue: 'RESTful', description: 'Application name used in logs and notifications')
+        string(name: 'PROJECT_DIR', defaultValue: 'RESTful', description: 'Gradle project directory from the repository root')
+        string(name: 'IMAGE_NAME', defaultValue: 'absolutevalues/restful-api', description: 'Container image name without tag')
+        string(name: 'DEPLOY_HOST', defaultValue: 'myhomedevserver.com', description: 'Deployment server hostname')
+        string(name: 'DEPLOY_PORT', defaultValue: '20000', description: 'Deployment server SSH port')
+        string(name: 'DEPLOY_DIR', defaultValue: '/home/foxy/docker/springboot/restful', description: 'Docker Compose directory on the deployment server')
+        string(name: 'COMPOSE_SERVICE', defaultValue: 'springboot', description: 'Docker Compose service to update')
+        string(name: 'DOCKERHUB_CREDENTIAL_ID', defaultValue: 'DockerHub-Auth', description: 'Jenkins credential ID for Docker Hub')
+        string(name: 'DEPLOY_CREDENTIAL_ID', defaultValue: 'deploy-ssh-key', description: 'Jenkins SSH credential ID for deployment')
     }
 
     stages {
-        stage('Prepare') {
+        stage('Checkout') {
             steps {
-                sh 'chmod +x ./gradlew'
+                cleanWs()
+                checkout scm
+                dir(params.PROJECT_DIR) {
+                    sh 'chmod +x gradlew'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh './gradlew clean test'
+                dir(params.PROJECT_DIR) {
+                    sh './gradlew clean test'
+                }
             }
         }
 
-        stage('Build And Push Image') {
+        stage('Build') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credential',
-                    usernameVariable: 'DOCKERHUB_USERNAME',
-                    passwordVariable: 'DOCKERHUB_PASSWORD'
-                )]) {
-                    sh '''
-                        ./gradlew jib \
-                          -Djib.to.image=$IMAGE_NAME:latest \
-                          -Djib.to.auth.username=$DOCKERHUB_USERNAME \
-                          -Djib.to.auth.password=$DOCKERHUB_PASSWORD
-                    '''
+                echo "Build and push ${params.APP_NAME} image"
+
+                dir(params.PROJECT_DIR) {
+                    withEnv(["IMAGE_NAME=${params.IMAGE_NAME}"]) {
+                        withCredentials([usernamePassword(
+                            credentialsId: params.DOCKERHUB_CREDENTIAL_ID,
+                            usernameVariable: 'DOCKERHUB_USERNAME',
+                            passwordVariable: 'DOCKERHUB_PASSWORD'
+                        )]) {
+                            sh '''
+                                ./gradlew jib --no-daemon \
+                                    -Djib.to.image=$IMAGE_NAME:latest
+                            '''
+                        }
+                    }
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sshagent(credentials: ['deploy-ssh-key']) {
-                    sh '''
-                        ssh -p $DEPLOY_PORT -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "
-                          cd $DEPLOY_DIR &&
-                          docker compose pull &&
-                          docker compose up -d
-                        "
-                    '''
+                echo "Deploy ${params.APP_NAME} service"
+
+                withEnv([
+                    "DEPLOY_HOST=${params.DEPLOY_HOST}",
+                    "DEPLOY_PORT=${params.DEPLOY_PORT}",
+                    "DEPLOY_DIR=${params.DEPLOY_DIR}",
+                    "COMPOSE_SERVICE=${params.COMPOSE_SERVICE}"
+                ]) {
+                    withCredentials([sshUserPrivateKey(
+                        credentialsId: params.DEPLOY_CREDENTIAL_ID,
+                        keyFileVariable: 'SSH_PRIVATE_KEY',
+                        usernameVariable: 'DEPLOY_USER'
+                    )]) {
+                        sh '''
+                            set -eu
+                            known_hosts=$(mktemp)
+                            trap 'rm -f "$known_hosts"' EXIT
+
+                            ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > "$known_hosts"
+                            ssh \
+                                -i "$SSH_PRIVATE_KEY" \
+                                -p "$DEPLOY_PORT" \
+                                -o BatchMode=yes \
+                                -o StrictHostKeyChecking=yes \
+                                -o UserKnownHostsFile="$known_hosts" \
+                                "$DEPLOY_USER@$DEPLOY_HOST" \
+                                "cd '$DEPLOY_DIR' &&
+                                docker compose pull '$COMPOSE_SERVICE' &&
+                                docker compose up -d --no-deps '$COMPOSE_SERVICE' &&
+                                docker compose ps '$COMPOSE_SERVICE'"
+                        '''
+                    }
                 }
             }
         }
@@ -62,11 +133,17 @@ pipeline {
 
     post {
         success {
-            echo "Deployed $IMAGE_NAME:latest"
+            echo "Deployed ${params.IMAGE_NAME}:latest"
+            script {
+                sendDiscordNotification('Deploy Succeeded', 3066993)
+            }
         }
 
         failure {
             echo 'Pipeline failed'
+            script {
+                sendDiscordNotification('Pipeline Failed', 15158332)
+            }
         }
     }
 }
