@@ -1,3 +1,31 @@
+void sendDiscordNotification(String result, int color) {
+    def payload = groovy.json.JsonOutput.toJson([
+        embeds: [[
+            title      : "${env.APP_NAME ?: env.JOB_NAME} ${result}",
+            description: "${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            url        : env.BUILD_URL,
+            color      : color,
+            fields     : [
+                [name: 'Image', value: "${env.IMAGE_NAME}:latest", inline: true],
+                [name: 'Deploy Host', value: env.DEPLOY_HOST, inline: true],
+                [name: 'Branch', value: env.BRANCH_NAME ?: 'N/A', inline: true]
+            ],
+            timestamp  : new Date().format("yyyy-MM-dd'T'HH:mm:ssXXX", TimeZone.getTimeZone('Asia/Seoul'))
+        ]]
+    ])
+
+    writeFile file: 'discord-payload.json', text: payload
+
+    withCredentials([string(credentialsId: 'discord-webhook-url', variable: 'DISCORD_WEBHOOK_URL')]) {
+        sh '''
+            curl -fsS \
+              -H 'Content-Type: application/json' \
+              --data-binary @discord-payload.json \
+              "$DISCORD_WEBHOOK_URL"
+        '''
+    }
+}
+
 pipeline {
     agent any
 
@@ -76,10 +104,16 @@ pipeline {
     post {
         success {
             echo "Deployed $IMAGE_NAME:latest"
+            script {
+                sendDiscordNotification('Deploy Succeeded', 3066993)
+            }
         }
 
         failure {
             echo 'Pipeline failed'
+            script {
+                sendDiscordNotification('Pipeline Failed', 15158332)
+            }
         }
     }
 }
