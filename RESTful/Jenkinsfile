@@ -63,37 +63,10 @@ pipeline {
                           -o StrictHostKeyChecking=yes \
                           -o UserKnownHostsFile="$known_hosts" \
                           "$DEPLOY_USER@$DEPLOY_HOST" \
-                          "set -eu
-                           cd '$DEPLOY_DIR'
-                           docker compose pull springboot
-                           docker compose up -d --no-deps springboot
-
-                           container_id=\$(docker compose ps -q springboot)
-                           if [ -z \"\$container_id\" ]; then
-                               echo 'Spring Boot container was not created.' >&2
-                               exit 1
-                           fi
-
-                           attempt=1
-                           while [ \"\$attempt\" -le 30 ]; do
-                               if docker exec \"\$container_id\" \
-                                   wget -qO- http://127.0.0.1:8081/actuator/health 2>/dev/null \
-                                   | grep -q '\"status\":\"UP\"'; then
-                                   docker compose ps springboot
-                                   exit 0
-                               fi
-
-                               if [ \"\$(docker inspect -f '{{.State.Running}}' \"\$container_id\")\" != 'true' ]; then
-                                   break
-                               fi
-
-                               attempt=\$((attempt + 1))
-                               sleep 2
-                           done
-
-                           echo 'Spring Boot health check failed.' >&2
-                           docker compose logs --tail=100 springboot >&2
-                           exit 1"
+                          "cd '$DEPLOY_DIR' &&
+                           docker compose pull springboot &&
+                           docker compose up -d --no-deps springboot &&
+                           docker compose ps springboot"
                     '''
                 }
             }
