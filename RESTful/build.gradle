@@ -103,9 +103,15 @@ jib {
     }
     to {
         image = 'absolutevalues/restful-api'
-        tags = ['v1.0']
-    }
-    dockerClient {
-        executable = '/usr/local/bin/docker'
+        tags = ['latest']
+
+        def dockerHubUsername = System.getenv('DOCKERHUB_USERNAME')
+        def dockerHubPassword = System.getenv('DOCKERHUB_PASSWORD')
+        if (dockerHubUsername && dockerHubPassword) {
+            auth {
+                username = dockerHubUsername
+                password = dockerHubPassword
+            }
+        }
     }
 }
