@@ -37,13 +37,15 @@ pipeline {
     }
 
     parameters {
+        string(name: 'APP_NAME', defaultValue: 'RESTful', description: 'Application name used in logs and notifications')
+        string(name: 'PROJECT_DIR', defaultValue: 'RESTful', description: 'Gradle project directory from the repository root')
+        string(name: 'IMAGE_NAME', defaultValue: 'absolutevalues/restful-api', description: 'Container image name without tag')
         string(name: 'DEPLOY_HOST', defaultValue: 'myhomedevserver.com', description: 'Deployment server hostname')
         string(name: 'DEPLOY_PORT', defaultValue: '20000', description: 'Deployment server SSH port')
         string(name: 'DEPLOY_DIR', defaultValue: '/home/foxy/docker/springboot/restful', description: 'Docker Compose directory on the deployment server')
-    }
-
-    environment {
-        IMAGE_NAME = 'absolutevalues/restful-api'
+        string(name: 'COMPOSE_SERVICE', defaultValue: 'springboot', description: 'Docker Compose service to update')
+        string(name: 'DOCKERHUB_CREDENTIAL_ID', defaultValue: 'DockerHub-Auth', description: 'Jenkins credential ID for Docker Hub')
+        string(name: 'DEPLOY_CREDENTIAL_ID', defaultValue: 'deploy-ssh-key', description: 'Jenkins SSH credential ID for deployment')
     }
 
     stages {
@@ -56,7 +58,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                dir('RESTful') {
+                dir(params.PROJECT_DIR) {
                     sh './gradlew clean test'
                 }
             }
@@ -64,9 +66,11 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('RESTful') {
+                echo "Build and push ${params.APP_NAME} image"
+
+                dir(params.PROJECT_DIR) {
                     withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-credential',
+                        credentialsId: params.DOCKERHUB_CREDENTIAL_ID,
                         usernameVariable: 'DOCKERHUB_USERNAME',
                         passwordVariable: 'DOCKERHUB_PASSWORD'
                     )]) {
@@ -81,8 +85,10 @@ pipeline {
 
         stage('Deploy') {
             steps {
+                echo "Deploy ${params.APP_NAME} service"
+
                 withCredentials([sshUserPrivateKey(
-                    credentialsId: 'deploy-ssh-key',
+                    credentialsId: params.DEPLOY_CREDENTIAL_ID,
                     keyFileVariable: 'SSH_PRIVATE_KEY',
                     usernameVariable: 'DEPLOY_USER'
                 )]) {
@@ -93,9 +99,6 @@ pipeline {
 
                         ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > "$known_hosts"
                         ssh \
-                           docker compose pull springboot &&
-                           docker compose up -d --no-deps springboot &&
-                           docker compose ps springboot"
                             -i "$SSH_PRIVATE_KEY" \
                             -p "$DEPLOY_PORT" \
                             -o BatchMode=yes \
@@ -103,6 +106,9 @@ pipeline {
                             -o UserKnownHostsFile="$known_hosts" \
                             "$DEPLOY_USER@$DEPLOY_HOST" \
                             "cd '$DEPLOY_DIR' &&
+                            docker compose pull '$COMPOSE_SERVICE' &&
+                            docker compose up -d --no-deps '$COMPOSE_SERVICE' &&
+                            docker compose ps '$COMPOSE_SERVICE'"
                     '''
                 }
             }
