@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Build And Push Image') {
+        stage('Build') {
             steps {
                 dir('RESTful') {
                     withCredentials([usernamePassword(
