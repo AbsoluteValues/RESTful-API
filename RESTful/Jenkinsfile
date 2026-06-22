@@ -41,6 +41,10 @@ pipeline {
         skipDefaultCheckout(true)
     }
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         DEPLOY_HOST = 'myhomedevserver.com'
         DEPLOY_PORT = '20000'
