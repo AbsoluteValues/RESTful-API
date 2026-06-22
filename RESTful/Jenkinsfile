@@ -1,6 +1,7 @@
 void sendDiscordNotification(String result, int color) {
     def appName = params.APP_NAME ?: env.JOB_NAME
     def imageName = params.IMAGE_NAME ?: 'N/A'
+    def imageTag = params.IMAGE_TAG ?: 'latest'
     def deployHost = params.DEPLOY_HOST ?: 'N/A'
 
     def payload = groovy.json.JsonOutput.toJson([
@@ -10,7 +11,7 @@ void sendDiscordNotification(String result, int color) {
             url        : env.BUILD_URL,
             color      : color,
             fields     : [
-                [name: 'Image', value: "${imageName}:latest", inline: true],
+                [name: 'Image', value: "${imageName}:${imageTag}", inline: true],
                 [name: 'Deploy Host', value: deployHost, inline: true],
                 [name: 'Branch', value: env.BRANCH_NAME ?: 'N/A', inline: true]
             ],
@@ -44,6 +45,7 @@ pipeline {
         string(name: 'APP_NAME', defaultValue: 'RESTful', description: 'Application name used in logs and notifications')
         string(name: 'PROJECT_DIR', defaultValue: 'RESTful', description: 'Gradle project directory from the repository root')
         string(name: 'IMAGE_NAME', defaultValue: 'absolutevalues/restful-api', description: 'Container image name without tag')
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Container image tag to build, push, and deploy')
         string(name: 'DEPLOY_HOST', defaultValue: 'myhomedevserver.com', description: 'Deployment server hostname')
         string(name: 'DEPLOY_PORT', defaultValue: '20000', description: 'Deployment server SSH port')
         string(name: 'DEPLOY_DIR', defaultValue: '/home/foxy/docker/springboot/restful', description: 'Docker Compose directory on the deployment server')
@@ -76,7 +78,10 @@ pipeline {
                 echo "Build and push ${params.APP_NAME} image"
 
                 dir(params.PROJECT_DIR) {
-                    withEnv(["IMAGE_NAME=${params.IMAGE_NAME}"]) {
+                    withEnv([
+                        "IMAGE_NAME=${params.IMAGE_NAME}",
+                        "IMAGE_TAG=${params.IMAGE_TAG}"
+                    ]) {
                         withCredentials([usernamePassword(
                             credentialsId: params.DOCKERHUB_CREDENTIAL_ID,
                             usernameVariable: 'DOCKERHUB_USERNAME',
@@ -84,7 +89,8 @@ pipeline {
                         )]) {
                             sh '''
                                 ./gradlew jib --no-daemon \
-                                    -Djib.to.image=$IMAGE_NAME:latest
+                                    -Djib.to.image=$IMAGE_NAME:$IMAGE_TAG \
+                                    -Djib.to.tags=$IMAGE_TAG
                             '''
                         }
                     }
@@ -133,7 +139,7 @@ pipeline {
 
     post {
         success {
-            echo "Deployed ${params.IMAGE_NAME}:latest"
+            echo "Deployed ${params.IMAGE_NAME}:${params.IMAGE_TAG}"
             script {
                 sendDiscordNotification('Deploy Succeeded', 3066993)
             }
