@@ -64,7 +64,7 @@ pipeline {
                     )]) {
                         sh '''
                             ./gradlew jib --no-daemon \
-                              -Djib.to.image=$IMAGE_NAME:latest
+                                -Djib.to.image=$IMAGE_NAME:latest
                         '''
                     }
                 }
@@ -85,16 +85,16 @@ pipeline {
 
                         ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > "$known_hosts"
                         ssh \
-                          -i "$SSH_PRIVATE_KEY" \
-                          -p "$DEPLOY_PORT" \
-                          -o BatchMode=yes \
-                          -o StrictHostKeyChecking=yes \
-                          -o UserKnownHostsFile="$known_hosts" \
-                          "$DEPLOY_USER@$DEPLOY_HOST" \
-                          "cd '$DEPLOY_DIR' &&
                            docker compose pull springboot &&
                            docker compose up -d --no-deps springboot &&
                            docker compose ps springboot"
+                            -i "$SSH_PRIVATE_KEY" \
+                            -p "$DEPLOY_PORT" \
+                            -o BatchMode=yes \
+                            -o StrictHostKeyChecking=yes \
+                            -o UserKnownHostsFile="$known_hosts" \
+                            "$DEPLOY_USER@$DEPLOY_HOST" \
+                            "cd '$DEPLOY_DIR' &&
                     '''
                 }
             }
