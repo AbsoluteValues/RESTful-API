@@ -53,6 +53,9 @@ pipeline {
             steps {
                 cleanWs()
                 checkout scm
+                dir(params.PROJECT_DIR) {
+                    sh 'chmod +x gradlew'
+                }
             }
         }
 
