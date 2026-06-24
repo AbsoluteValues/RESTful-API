@@ -95,6 +95,9 @@ tasks.withType(Test).configureEach {
 }
 
 jib {
+    dockerClient {
+        executable = '/usr/local/bin/docker'
+    }
     container {
         mainClass = 'com.AbsoluteValue.RESTful.RestFulApplication'
     }
