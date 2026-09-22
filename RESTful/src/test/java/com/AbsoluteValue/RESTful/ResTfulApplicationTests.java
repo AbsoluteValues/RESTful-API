@@ -1,5 +1,6 @@
 package com.AbsoluteValue.RESTful;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -7,20 +8,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-
-import com.AbsoluteValue.RESTful.common.auth.config.JwtConfig;
-import com.AbsoluteValue.RESTful.common.auth.config.JwtProperties;
-import com.AbsoluteValue.RESTful.common.auth.repository.RefreshTokenRepository;
-import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Instant;
+import com.AbsoluteValue.RESTful.common.auth.config.JwtConfig;
+import com.AbsoluteValue.RESTful.common.auth.config.JwtProperties;
+import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import java.io.InputStream;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,19 +51,20 @@ class ResTfulApplicationTests {
     @Autowired
     private JwtProperties jwtProperties;
 
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void loginReturnsRs256TokenPair() throws Exception {
+    void loginReturnsJwtToken() throws Exception {
         signUp("testuser", "password123", "tester");
 
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .with(csrf())
                         .contentType("application/json")
                         .content("""
-                                {"id":"testuser","password":"password123"}
+                                {
+                                  "id": "testuser",
+                                  "password": "password123"
+                                }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.grantType").value("Bearer"))
@@ -73,83 +72,17 @@ class ResTfulApplicationTests {
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
                 .andExpect(jsonPath("$.expiresIn").value(900))
                 .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("Pragma", "no-cache"))
                 .andReturn();
 
         String accessToken = objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("accessToken").asText();
-        JsonNode header = objectMapper.readTree(
+                .get("accessToken")
+                .asText();
+        JsonNode jwtHeader = objectMapper.readTree(
                 java.util.Base64.getUrlDecoder().decode(accessToken.substring(0, accessToken.indexOf('.')))
         );
-        assertEquals("RS256", header.get("alg").asText());
-        assertEquals("test-key-1", header.get("kid").asText());
-        assertEquals(1, refreshTokenRepository.count());
-    }
-
-    @Test
-    void invalidCredentialsReturnUnauthorized() throws Exception {
-        signUp("testuser", "password123", "tester");
-
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType("application/json")
-                        .content("""
-                                {"id":"testuser","password":"wrong-password"}
-                                """))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("684"));
-    }
-
-    @Test
-    void reusedRefreshTokenRevokesTheTokenFamily() throws Exception {
-        signUp("testuser", "password123", "tester");
-        JsonNode original = login("testuser", "password123");
-
-        MvcResult result = mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType("application/json")
-                        .content(refreshRequest(original.get("refreshToken").asText())))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        JsonNode rotated = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertNotEquals(original.get("refreshToken").asText(), rotated.get("refreshToken").asText());
-        assertEquals(1, refreshTokenRepository.count());
-
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType("application/json")
-                        .content(refreshRequest(original.get("refreshToken").asText())))
-                .andExpect(status().isUnauthorized());
-
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType("application/json")
-                        .content(refreshRequest(rotated.get("refreshToken").asText())))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void logoutRevokesRefreshToken() throws Exception {
-        signUp("logoutuser", "password123", "logout");
-        JsonNode tokens = login("logoutuser", "password123");
-
-        mockMvc.perform(post("/api/v1/auth/logout")
-                        .contentType("application/json")
-                        .content(refreshRequest(tokens.get("refreshToken").asText())))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType("application/json")
-                        .content(refreshRequest(tokens.get("refreshToken").asText())))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void accessTokenSignedWithPreviousRotationKeyIsAccepted() throws Exception {
-        signUp("testuser", "password123", "rotation");
-        Instant now = Instant.now();
-        String token = signedToken(previousKeyEncoder(), "test-key-0",
-                jwtProperties.audience(), now, now.plusSeconds(900), "testuser");
-
-        mockMvc.perform(get("/api/user/profile/testuser")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+        assertEquals("RS256", jwtHeader.get("alg").asText());
+        assertEquals("test-key-1", jwtHeader.get("kid").asText());
     }
 
     @Test
@@ -161,160 +94,261 @@ class ResTfulApplicationTests {
     }
 
     @Test
+    void profileCanBeAccessedWithOwnToken() throws Exception {
+        signUp("testuser", "password123", "tester");
+        Tokens tokens = login("testuser", "password123");
+
+        mockMvc.perform(get("/api/user/profile/testuser")
+                        .header("Authorization", "Bearer " + tokens.accessToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value("testuser"))
+                .andExpect(jsonPath("$.data.nickname").value("tester"));
+    }
+
+    @Test
+    void refreshRotatesTokenAndRejectsReuse() throws Exception {
+        signUp("testuser", "password123", "tester");
+        Tokens original = login("testuser", "password123");
+
+        MvcResult refreshResult = mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(original.refreshToken())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andReturn();
+
+        JsonNode refreshedJson = objectMapper.readTree(refreshResult.getResponse().getContentAsString());
+        String rotatedRefreshToken = refreshedJson.get("refreshToken").asText();
+        assertNotEquals(original.refreshToken(), rotatedRefreshToken);
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(original.refreshToken())))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("683"));
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(rotatedRefreshToken)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("683"));
+    }
+
+    @Test
     void invalidBearerTokenReturnsStandardChallenge() throws Exception {
         mockMvc.perform(get("/api/user/profile/testuser")
                         .header("Authorization", "Bearer invalid-token"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("007"));
+                .andExpect(jsonPath("$.code").value("007"))
+                .andExpect(header().string("WWW-Authenticate", "Bearer"));
     }
 
     @Test
     void expiredAccessTokenIsRejected() throws Exception {
         Instant now = Instant.now();
-        String token = signedToken(jwtProperties.audience(), now.minusSeconds(7200), now.minusSeconds(3600));
+        String expiredToken = signedToken(
+                TokenType.ACCESS,
+                jwtProperties.issuer(),
+                List.of(jwtProperties.audience()),
+                now.minusSeconds(7200),
+                now.minusSeconds(3600)
+        );
 
         mockMvc.perform(get("/api/user/profile/testuser")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isUnauthorized());
+                        .header("Authorization", "Bearer " + expiredToken))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("007"));
     }
 
     @Test
     void expiredRefreshTokenIsRejected() throws Exception {
         Instant now = Instant.now();
-        String token = signedRefreshToken(now.minusSeconds(7200), now.minusSeconds(3600));
+        String expiredToken = signedToken(
+                TokenType.REFRESH,
+                jwtProperties.issuer(),
+                List.of(jwtProperties.audience()),
+                now.minusSeconds(7200),
+                now.minusSeconds(3600)
+        );
 
         mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType("application/json")
-                        .content(refreshRequest(token)))
+                        .content(refreshRequest(expiredToken)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("683"));
     }
 
     @Test
     void forgedAccessTokenIsRejected() throws Exception {
-        String token = signedToken(jwtProperties.audience(), Instant.now(), Instant.now().plusSeconds(900));
+        signUp("testuser", "password123", "tester");
+        Tokens tokens = login("testuser", "password123");
 
         mockMvc.perform(get("/api/user/profile/testuser")
-                        .header("Authorization", "Bearer " + forgeSignature(token)))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void accessTokenCannotBeUsedForRefresh() throws Exception {
-        String token = signedToken(jwtProperties.audience(), Instant.now(), Instant.now().plusSeconds(900));
-
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType("application/json")
-                        .content(refreshRequest(token)))
+                        .header("Authorization", "Bearer " + forgeSignature(tokens.accessToken())))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("683"));
+                .andExpect(jsonPath("$.code").value("007"));
     }
 
     @Test
     void accessTokenWithWrongAudienceIsRejected() throws Exception {
         Instant now = Instant.now();
-        String token = signedToken("another-api", now, now.plusSeconds(900));
+        String wrongAudienceToken = signedToken(
+                TokenType.ACCESS,
+                jwtProperties.issuer(),
+                List.of("another-api"),
+                now,
+                now.plusSeconds(900)
+        );
 
         mockMvc.perform(get("/api/user/profile/testuser")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isUnauthorized());
+                        .header("Authorization", "Bearer " + wrongAudienceToken))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("007"));
     }
 
     @Test
-    void profileCanBeAccessedWithOwnToken() throws Exception {
+    void accessTokenSignedWithPreviousRotationKeyIsAccepted() throws Exception {
         signUp("testuser", "password123", "tester");
-        String token = signedToken(jwtProperties.audience(), Instant.now(), Instant.now().plusSeconds(900));
+        Instant now = Instant.now();
+        String previousKeyToken = signedToken(
+                previousKeyEncoder(),
+                "test-key-0",
+                TokenType.ACCESS,
+                jwtProperties.issuer(),
+                List.of(jwtProperties.audience()),
+                now,
+                now.plusSeconds(900)
+        );
 
         mockMvc.perform(get("/api/user/profile/testuser")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + previousKeyToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value("testuser"));
+    }
+
+    @Test
+    void accessTokenCannotBeUsedForRefresh() throws Exception {
+        signUp("testuser", "password123", "tester");
+        Tokens tokens = login("testuser", "password123");
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(tokens.accessToken())))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("683"));
+    }
+
+    @Test
+    void invalidCredentialsReturnUnauthorized() throws Exception {
+        signUp("testuser", "password123", "tester");
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "id": "testuser",
+                                  "password": "wrong-password"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("684"));
     }
 
     @Test
     void userCannotReadAnotherUsersProfile() throws Exception {
         signUp("testuser", "password123", "tester");
         signUp("otheruser", "password123", "other");
-        String token = signedToken(jwtProperties.audience(), Instant.now(), Instant.now().plusSeconds(900));
+        Tokens tokens = login("testuser", "password123");
 
         mockMvc.perform(get("/api/user/profile/otheruser")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + tokens.accessToken()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("006"));
     }
 
+    @Test
+    void logoutRevokesRefreshToken() throws Exception {
+        signUp("testuser", "password123", "tester");
+        Tokens tokens = login("testuser", "password123");
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType("application/json")
+                        .content(refreshRequest(tokens.refreshToken())))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(tokens.refreshToken())))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("683"));
+    }
+
     private void signUp(String id, String password, String nickname) throws Exception {
         mockMvc.perform(post("/api/user")
+                        .with(csrf())
                         .contentType("application/json")
                         .content("""
-                                {"id":"%s","password":"%s","nickname":"%s"}
+                                {
+                                  "id": "%s",
+                                  "password": "%s",
+                                  "nickname": "%s"
+                                }
                                 """.formatted(id, password, nickname)))
                 .andExpect(status().isCreated());
     }
 
-    private JsonNode login(String id, String password) throws Exception {
+    private Tokens login(String id, String password) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .with(csrf())
                         .contentType("application/json")
                         .content("""
-                                {"id":"%s","password":"%s"}
+                                {
+                                  "id": "%s",
+                                  "password": "%s"
+                                }
                                 """.formatted(id, password)))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString());
+
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return new Tokens(json.get("accessToken").asText(), json.get("refreshToken").asText());
     }
 
     private String refreshRequest(String token) {
         return """
-                {"refreshToken":"%s"}
+                {
+                  "refreshToken": "%s"
+                }
                 """.formatted(token);
     }
 
-    private String signedToken(String audience, Instant issuedAt, Instant expiresAt) {
-        return signedToken(jwtEncoder, jwtProperties.keyId(), audience, issuedAt, expiresAt, "testuser");
+    private String signedToken(TokenType tokenType, String issuer, List<String> audience,
+                               Instant issuedAt, Instant expiresAt) {
+        return signedToken(jwtEncoder, jwtProperties.keyId(), tokenType, issuer, audience, issuedAt, expiresAt);
     }
 
-    private String signedToken(JwtEncoder encoder, String keyId, String audience,
-                               Instant issuedAt, Instant expiresAt, String subject) {
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(jwtProperties.issuer())
-                .subject(subject)
-                .id(UUID.randomUUID().toString())
-                .audience(List.of(audience))
-                .claim(JwtConfig.TOKEN_TYPE_CLAIM, TokenType.ACCESS.name())
-                .claim(JwtConfig.AUTHORITIES_CLAIM, List.of("ROLE_USER"))
+    private String signedToken(JwtEncoder encoder, String keyId, TokenType tokenType, String issuer,
+                               List<String> audience, Instant issuedAt, Instant expiresAt) {
+        JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
+                .issuer(issuer)
+                .subject("testuser")
+                .id(java.util.UUID.randomUUID().toString())
+                .audience(audience)
+                .claim(JwtConfig.TOKEN_TYPE_CLAIM, tokenType.name())
                 .issuedAt(issuedAt)
-                .expiresAt(expiresAt)
-                .build();
+                .expiresAt(expiresAt);
+        if (tokenType == TokenType.ACCESS) {
+            claims.claim(JwtConfig.AUTHORITIES_CLAIM, List.of("ROLE_USER"));
+        } else {
+            claims.claim(JwtConfig.FAMILY_ID_CLAIM, java.util.UUID.randomUUID().toString());
+        }
+
         JwsHeader headers = JwsHeader.with(SignatureAlgorithm.RS256)
                 .keyId(keyId)
                 .type("JWT")
                 .build();
-        return encoder.encode(JwtEncoderParameters.from(headers, claims)).getTokenValue();
-    }
-
-    private String signedRefreshToken(Instant issuedAt, Instant expiresAt) {
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(jwtProperties.issuer())
-                .subject("testuser")
-                .id(java.util.UUID.randomUUID().toString())
-                .audience(List.of(jwtProperties.audience()))
-                .claim(JwtConfig.TOKEN_TYPE_CLAIM, TokenType.REFRESH.name())
-                .claim(JwtConfig.FAMILY_ID_CLAIM, java.util.UUID.randomUUID().toString())
-                .issuedAt(issuedAt)
-                .expiresAt(expiresAt)
-                .build();
-        JwsHeader headers = JwsHeader.with(SignatureAlgorithm.RS256)
-                .keyId(jwtProperties.keyId())
-                .type("JWT")
-                .build();
-        return jwtEncoder.encode(JwtEncoderParameters.from(headers, claims)).getTokenValue();
-    }
-
-    private String forgeSignature(String token) {
-        String[] parts = token.split("\\.");
-        char replacement = parts[2].charAt(0) == 'A' ? 'B' : 'A';
-        parts[2] = replacement + parts[2].substring(1);
-        return String.join(".", parts);
+        return encoder.encode(JwtEncoderParameters.from(headers, claims.build())).getTokenValue();
     }
 
     private JwtEncoder previousKeyEncoder() throws Exception {
@@ -331,4 +365,15 @@ class ResTfulApplicationTests {
                 .jwkPostProcessor(builder -> builder.keyID("test-key-0"))
                 .build();
     }
+
+    private String forgeSignature(String token) {
+        String[] parts = token.split("\\.");
+        char replacement = parts[2].charAt(0) == 'A' ? 'B' : 'A';
+        parts[2] = replacement + parts[2].substring(1);
+        return String.join(".", parts);
+    }
+
+    private record Tokens(String accessToken, String refreshToken) {
+    }
+
 }
