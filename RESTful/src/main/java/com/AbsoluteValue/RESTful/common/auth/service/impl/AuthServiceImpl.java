@@ -56,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
     public JwtToken refresh(RefreshTokenRequest request) {
         Jwt claims = parseRefreshToken(request.refreshToken());
         String familyId = claims.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM);
-        Optional<RefreshToken> storedTokenResult = refreshTokenRepository.findByTokenId(claims.getId());
+        Optional<RefreshToken> storedTokenResult = refreshTokenRepository.findByTokenIdForUpdate(claims.getId());
         if (storedTokenResult.isEmpty()) {
             refreshTokenRepository.deleteByFamilyId(familyId);
             throw invalidToken();

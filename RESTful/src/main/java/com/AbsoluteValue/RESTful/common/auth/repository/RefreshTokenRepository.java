@@ -1,15 +1,19 @@
 package com.AbsoluteValue.RESTful.common.auth.repository;
 
 import com.AbsoluteValue.RESTful.common.auth.entity.RefreshToken;
+import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
 
-    Optional<RefreshToken> findByTokenId(String tokenId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select token from RefreshToken token where token.tokenId = :tokenId")
+    Optional<RefreshToken> findByTokenIdForUpdate(@Param("tokenId") String tokenId);
 
     @Modifying
     @Query("delete from RefreshToken token where token.familyId = :familyId")
