@@ -14,6 +14,7 @@ import java.security.interfaces.RSAPublicKey;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -64,7 +65,18 @@ public class JwtConfig {
     }
 
     @Bean
+    @Primary
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwtJwkSource, JwtProperties properties) {
+        return tokenDecoder(jwtJwkSource, properties, TokenType.ACCESS);
+    }
+
+    @Bean
+    public JwtDecoder refreshTokenDecoder(JWKSource<SecurityContext> jwtJwkSource, JwtProperties properties) {
+        return tokenDecoder(jwtJwkSource, properties, TokenType.REFRESH);
+    }
+
+    private JwtDecoder tokenDecoder(JWKSource<SecurityContext> jwtJwkSource, JwtProperties properties,
+                                    TokenType tokenType) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSource(jwtJwkSource)
                 .jwsAlgorithm(SignatureAlgorithm.RS256)
                 .build();
@@ -73,7 +85,7 @@ public class JwtConfig {
                 JwtClaimNames.AUD,
                 claim -> claim != null && claim.contains(properties.audience())
         );
-        OAuth2TokenValidator<Jwt> type = new JwtClaimValidator<>(TOKEN_TYPE_CLAIM, TokenType.ACCESS.name()::equals);
+        OAuth2TokenValidator<Jwt> type = new JwtClaimValidator<>(TOKEN_TYPE_CLAIM, tokenType.name()::equals);
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaults, audience, type));
         return decoder;
     }

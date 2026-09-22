@@ -3,16 +3,21 @@ package com.AbsoluteValue.RESTful.common.auth.util;
 import com.AbsoluteValue.RESTful.common.auth.config.JwtProperties;
 import com.AbsoluteValue.RESTful.common.auth.config.JwtConfig;
 import com.AbsoluteValue.RESTful.common.auth.dto.JwtToken;
+import com.AbsoluteValue.RESTful.common.auth.exception.InvalidJwtException;
 import com.AbsoluteValue.RESTful.common.auth.token.IssuedTokens;
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,16 +29,15 @@ public class JwtUtil {
 
     private final JwtProperties properties;
     private final JwtEncoder encoder;
+    private final JwtDecoder refreshTokenDecoder;
     private final Clock clock;
 
-    public JwtUtil(JwtProperties properties, JwtEncoder encoder, Clock clock) {
+    public JwtUtil(JwtProperties properties, JwtEncoder encoder,
+                   @Qualifier("refreshTokenDecoder") JwtDecoder refreshTokenDecoder, Clock clock) {
         this.properties = properties;
         this.encoder = encoder;
+        this.refreshTokenDecoder = refreshTokenDecoder;
         this.clock = clock;
-    }
-
-    public JwtToken issueTokens(Authentication authentication) {
-        return issueTokens(authentication, null).response();
     }
 
     public IssuedTokens issueTokens(Authentication authentication, String refreshTokenFamilyId) {
@@ -87,4 +91,15 @@ public class JwtUtil {
         return new IssuedTokens(response, refreshTokenId, familyId, refreshExpiresAt);
     }
 
+    public Jwt parseRefreshToken(String token) {
+        try {
+            Jwt jwt = refreshTokenDecoder.decode(token);
+            if (jwt.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM) == null) {
+                throw new InvalidJwtException("Refresh token family is missing");
+            }
+            return jwt;
+        } catch (JwtException exception) {
+            throw new InvalidJwtException("Invalid JWT", exception);
+        }
+    }
 }
