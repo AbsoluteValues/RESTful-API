@@ -14,6 +14,7 @@ import com.AbsoluteValue.RESTful.common.auth.util.RefreshTokenHasher;
 import com.AbsoluteValue.RESTful.common.response.code.BusinessErrorCode;
 import com.AbsoluteValue.RESTful.common.response.exception.BusinessException;
 import java.time.Clock;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -55,13 +56,18 @@ public class AuthServiceImpl implements AuthService {
     public JwtToken refresh(RefreshTokenRequest request) {
         Jwt claims = parseRefreshToken(request.refreshToken());
         String familyId = claims.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM);
-        RefreshToken storedToken = refreshTokenRepository.findByTokenId(claims.getId())
-                .orElseThrow(this::invalidToken);
+        Optional<RefreshToken> storedTokenResult = refreshTokenRepository.findByTokenId(claims.getId());
+        if (storedTokenResult.isEmpty()) {
+            refreshTokenRepository.deleteByFamilyId(familyId);
+            throw invalidToken();
+        }
+        RefreshToken storedToken = storedTokenResult.get();
 
         if (!storedToken.getUserId().equals(claims.getSubject())
                 || !storedToken.getFamilyId().equals(familyId)
                 || storedToken.isExpired(clock.instant())
                 || !refreshTokenHasher.matches(request.refreshToken(), storedToken.getTokenHash())) {
+            refreshTokenRepository.deleteByFamilyId(familyId);
             throw invalidToken();
         }
 
