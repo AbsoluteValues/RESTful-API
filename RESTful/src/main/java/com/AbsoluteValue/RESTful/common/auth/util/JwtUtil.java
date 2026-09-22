@@ -27,13 +27,18 @@ public class JwtUtil {
     private final JwtEncoder encoder;
     private final Clock clock;
 
-    public JwtToken issueAccessToken(Authentication authentication) {
+    public JwtToken issueTokens(Authentication authentication) {
         UserDetails principal = (UserDetails) authentication.getPrincipal();
         Instant now = clock.instant();
         List<String> authorities = principal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        JwsHeader headers = JwsHeader.with(SignatureAlgorithm.RS256)
+                .keyId(properties.keyId())
+                .type("JWT")
+                .build();
+
+        JwtClaimsSet accessClaims = JwtClaimsSet.builder()
                 .issuer(properties.issuer())
                 .subject(principal.getUsername())
                 .id(UUID.randomUUID().toString())
@@ -43,13 +48,20 @@ public class JwtUtil {
                 .issuedAt(now)
                 .expiresAt(now.plus(properties.accessTokenExpiration()))
                 .build();
-        JwsHeader headers = JwsHeader.with(SignatureAlgorithm.RS256)
-                .keyId(properties.keyId())
-                .type("JWT")
+        JwtClaimsSet refreshClaims = JwtClaimsSet.builder()
+                .issuer(properties.issuer())
+                .subject(principal.getUsername())
+                .id(UUID.randomUUID().toString())
+                .audience(List.of(properties.audience()))
+                .claim(JwtConfig.TOKEN_TYPE_CLAIM, TokenType.REFRESH.name())
+                .issuedAt(now)
+                .expiresAt(now.plus(properties.refreshTokenExpiration()))
                 .build();
+
         return new JwtToken(
                 "Bearer",
-                encoder.encode(JwtEncoderParameters.from(headers, claims)).getTokenValue(),
+                encoder.encode(JwtEncoderParameters.from(headers, accessClaims)).getTokenValue(),
+                encoder.encode(JwtEncoderParameters.from(headers, refreshClaims)).getTokenValue(),
                 properties.accessTokenExpiration().toSeconds()
         );
     }

@@ -18,6 +18,7 @@ jwt:
   issuer: ${JWT_ISSUER:RESTful}
   audience: ${JWT_AUDIENCE:RESTful-api}
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:15m}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:14d}
 
 security:
   cors:

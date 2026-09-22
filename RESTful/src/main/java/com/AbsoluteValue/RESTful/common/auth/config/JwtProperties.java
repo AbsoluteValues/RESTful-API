@@ -15,12 +15,17 @@ public record JwtProperties(
         @NotBlank String keyId,
         @NotBlank String issuer,
         @NotBlank String audience,
-        @NotNull Duration accessTokenExpiration
+        @NotNull Duration accessTokenExpiration,
+        @NotNull Duration refreshTokenExpiration
 ) {
     public JwtProperties {
         if (accessTokenExpiration != null
                 && (accessTokenExpiration.isZero() || accessTokenExpiration.isNegative())) {
             throw new IllegalArgumentException("Access token expiration must be positive");
+        }
+        if (refreshTokenExpiration != null
+                && (refreshTokenExpiration.isZero() || refreshTokenExpiration.isNegative())) {
+            throw new IllegalArgumentException("Refresh token expiration must be positive");
         }
     }
 }

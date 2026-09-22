@@ -20,6 +20,7 @@ jwt:
   issuer: RESTful-test
   audience: RESTful-api-test
   access-token-expiration: 15m
+  refresh-token-expiration: 14d
 
 security:
   cors:
