@@ -7,9 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.AbsoluteValue.RESTful.common.auth.config.JwtConfig;
 import com.AbsoluteValue.RESTful.common.auth.config.JwtProperties;
+import com.AbsoluteValue.RESTful.common.auth.repository.RefreshTokenRepository;
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +47,9 @@ class ResTfulApplicationTests {
     @Autowired
     private JwtProperties jwtProperties;
 
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -71,6 +76,7 @@ class ResTfulApplicationTests {
         );
         assertEquals("RS256", header.get("alg").asText());
         assertEquals("test-key-1", header.get("kid").asText());
+        assertEquals(1, refreshTokenRepository.count());
     }
 
     @Test
@@ -84,6 +90,48 @@ class ResTfulApplicationTests {
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("684"));
+    }
+
+    @Test
+    void reusedRefreshTokenRevokesTheTokenFamily() throws Exception {
+        signUp("testuser", "password123", "tester");
+        JsonNode original = login("testuser", "password123");
+
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(original.get("refreshToken").asText())))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode rotated = objectMapper.readTree(result.getResponse().getContentAsString());
+        assertNotEquals(original.get("refreshToken").asText(), rotated.get("refreshToken").asText());
+        assertEquals(1, refreshTokenRepository.count());
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(original.get("refreshToken").asText())))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(rotated.get("refreshToken").asText())))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutRevokesRefreshToken() throws Exception {
+        signUp("logoutuser", "password123", "logout");
+        JsonNode tokens = login("logoutuser", "password123");
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType("application/json")
+                        .content(refreshRequest(tokens.get("refreshToken").asText())))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(tokens.get("refreshToken").asText())))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -152,6 +200,23 @@ class ResTfulApplicationTests {
                                 {"id":"%s","password":"%s","nickname":"%s"}
                                 """.formatted(id, password, nickname)))
                 .andExpect(status().isCreated());
+    }
+
+    private JsonNode login(String id, String password) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType("application/json")
+                        .content("""
+                                {"id":"%s","password":"%s"}
+                                """.formatted(id, password)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString());
+    }
+
+    private String refreshRequest(String token) {
+        return """
+                {"refreshToken":"%s"}
+                """.formatted(token);
     }
 
     private String signedToken(String audience, Instant issuedAt, Instant expiresAt) {
