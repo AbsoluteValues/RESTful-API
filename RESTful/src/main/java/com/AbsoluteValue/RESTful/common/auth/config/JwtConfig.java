@@ -35,6 +35,7 @@ public class JwtConfig {
 
     public static final String TOKEN_TYPE_CLAIM = "token_type";
     public static final String AUTHORITIES_CLAIM = "authorities";
+    public static final String FAMILY_ID_CLAIM = "family_id";
 
     @Bean
     public JWKSource<SecurityContext> jwtJwkSource(JwtProperties properties) throws IOException {
