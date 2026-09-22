@@ -16,17 +16,23 @@ import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.io.InputStream;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -135,6 +141,18 @@ class ResTfulApplicationTests {
     }
 
     @Test
+    void accessTokenSignedWithPreviousRotationKeyIsAccepted() throws Exception {
+        signUp("testuser", "password123", "rotation");
+        Instant now = Instant.now();
+        String token = signedToken(previousKeyEncoder(), "test-key-0",
+                jwtProperties.audience(), now, now.plusSeconds(900), "testuser");
+
+        mockMvc.perform(get("/api/user/profile/testuser")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void profileRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/user/profile/testuser"))
                 .andExpect(status().isUnauthorized())
@@ -158,6 +176,38 @@ class ResTfulApplicationTests {
         mockMvc.perform(get("/api/user/profile/testuser")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void expiredRefreshTokenIsRejected() throws Exception {
+        Instant now = Instant.now();
+        String token = signedRefreshToken(now.minusSeconds(7200), now.minusSeconds(3600));
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(token)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("683"));
+    }
+
+    @Test
+    void forgedAccessTokenIsRejected() throws Exception {
+        String token = signedToken(jwtProperties.audience(), Instant.now(), Instant.now().plusSeconds(900));
+
+        mockMvc.perform(get("/api/user/profile/testuser")
+                        .header("Authorization", "Bearer " + forgeSignature(token)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void accessTokenCannotBeUsedForRefresh() throws Exception {
+        String token = signedToken(jwtProperties.audience(), Instant.now(), Instant.now().plusSeconds(900));
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content(refreshRequest(token)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("683"));
     }
 
     @Test
@@ -220,9 +270,14 @@ class ResTfulApplicationTests {
     }
 
     private String signedToken(String audience, Instant issuedAt, Instant expiresAt) {
+        return signedToken(jwtEncoder, jwtProperties.keyId(), audience, issuedAt, expiresAt, "testuser");
+    }
+
+    private String signedToken(JwtEncoder encoder, String keyId, String audience,
+                               Instant issuedAt, Instant expiresAt, String subject) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(jwtProperties.issuer())
-                .subject("testuser")
+                .subject(subject)
                 .id(UUID.randomUUID().toString())
                 .audience(List.of(audience))
                 .claim(JwtConfig.TOKEN_TYPE_CLAIM, TokenType.ACCESS.name())
@@ -231,9 +286,49 @@ class ResTfulApplicationTests {
                 .expiresAt(expiresAt)
                 .build();
         JwsHeader headers = JwsHeader.with(SignatureAlgorithm.RS256)
+                .keyId(keyId)
+                .type("JWT")
+                .build();
+        return encoder.encode(JwtEncoderParameters.from(headers, claims)).getTokenValue();
+    }
+
+    private String signedRefreshToken(Instant issuedAt, Instant expiresAt) {
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(jwtProperties.issuer())
+                .subject("testuser")
+                .id(java.util.UUID.randomUUID().toString())
+                .audience(List.of(jwtProperties.audience()))
+                .claim(JwtConfig.TOKEN_TYPE_CLAIM, TokenType.REFRESH.name())
+                .claim(JwtConfig.FAMILY_ID_CLAIM, java.util.UUID.randomUUID().toString())
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
+                .build();
+        JwsHeader headers = JwsHeader.with(SignatureAlgorithm.RS256)
                 .keyId(jwtProperties.keyId())
                 .type("JWT")
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(headers, claims)).getTokenValue();
+    }
+
+    private String forgeSignature(String token) {
+        String[] parts = token.split("\\.");
+        char replacement = parts[2].charAt(0) == 'A' ? 'B' : 'A';
+        parts[2] = replacement + parts[2].substring(1);
+        return String.join(".", parts);
+    }
+
+    private JwtEncoder previousKeyEncoder() throws Exception {
+        RSAPrivateKey privateKey;
+        RSAPublicKey publicKey;
+        try (InputStream input = new ClassPathResource("jwt/test-previous-private.pem").getInputStream()) {
+            privateKey = RsaKeyConverters.pkcs8().convert(input);
+        }
+        try (InputStream input = new ClassPathResource("jwt/test-previous-public.pem").getInputStream()) {
+            publicKey = RsaKeyConverters.x509().convert(input);
+        }
+        return NimbusJwtEncoder.withKeyPair(publicKey, privateKey)
+                .algorithm(SignatureAlgorithm.RS256)
+                .jwkPostProcessor(builder -> builder.keyID("test-key-0"))
+                .build();
     }
 }
