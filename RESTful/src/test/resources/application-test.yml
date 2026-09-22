@@ -13,6 +13,9 @@ spring:
       hibernate:
         format_sql: false
 
+  flyway:
+    enabled: false
+
 jwt:
   private-key-location: classpath:jwt/test-private.pem
   public-key-location: classpath:jwt/test-public.pem
