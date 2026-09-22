@@ -87,6 +87,21 @@ public class AuthServiceImpl implements AuthService {
         return issueAndStore(authentication, familyId).response();
     }
 
+    @Override
+    @Transactional
+    public void logout(RefreshTokenRequest request) {
+        Jwt claims = parseRefreshToken(request.refreshToken());
+        RefreshToken storedToken = refreshTokenRepository.findByTokenIdForUpdate(claims.getId())
+                .orElseThrow(this::invalidToken);
+        String familyId = claims.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM);
+        if (!storedToken.getUserId().equals(claims.getSubject())
+                || !storedToken.getFamilyId().equals(familyId)
+                || !refreshTokenHasher.matches(request.refreshToken(), storedToken.getTokenHash())) {
+            throw invalidToken();
+        }
+        refreshTokenRepository.deleteByFamilyId(familyId);
+    }
+
     private IssuedTokens issueAndStore(Authentication authentication, String refreshTokenFamilyId) {
         IssuedTokens issuedTokens = jwtUtil.issueTokens(authentication, refreshTokenFamilyId);
         String userId = ((UserDetails) authentication.getPrincipal()).getUsername();

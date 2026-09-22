@@ -31,6 +31,12 @@ public class AuthController {
         return tokenResponse(authService.refresh(request));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
+    }
+
     private ResponseEntity<JwtToken> tokenResponse(JwtToken token) {
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())

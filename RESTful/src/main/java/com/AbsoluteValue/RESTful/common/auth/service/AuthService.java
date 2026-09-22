@@ -9,4 +9,5 @@ public interface AuthService {
 
     JwtToken refresh(RefreshTokenRequest request);
 
+    void logout(RefreshTokenRequest request);
 }
