@@ -2,6 +2,7 @@ package com.AbsoluteValue.RESTful.common.auth.config;
 
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,22 +44,28 @@ public class JwtConfig {
     @Bean
     public JWKSource<SecurityContext> jwtJwkSource(JwtProperties properties) throws IOException {
         RSAPrivateKey privateKey;
-        RSAPublicKey publicKey;
         try (InputStream input = properties.privateKeyLocation().getInputStream()) {
             privateKey = RsaKeyConverters.pkcs8().convert(input);
         }
-        try (InputStream input = properties.publicKeyLocation().getInputStream()) {
-            publicKey = RsaKeyConverters.x509().convert(input);
+
+        List<JWK> keys = new ArrayList<>();
+        for (int index = 0; index < properties.publicKeyLocations().size(); index++) {
+            RSAPublicKey publicKey;
+            try (InputStream input = properties.publicKeyLocations().get(index).getInputStream()) {
+                publicKey = RsaKeyConverters.x509().convert(input);
+            }
+            RSAKey.Builder builder = new RSAKey.Builder(publicKey)
+                    .keyID(properties.publicKeyIds().get(index))
+                    .algorithm(JWSAlgorithm.RS256);
+            if (properties.keyId().equals(properties.publicKeyIds().get(index))) {
+                if (!privateKey.getModulus().equals(publicKey.getModulus())) {
+                    throw new IllegalArgumentException("JWT signing private key does not match its public key");
+                }
+                builder.privateKey(privateKey);
+            }
+            keys.add(builder.build());
         }
-        if (!privateKey.getModulus().equals(publicKey.getModulus())) {
-            throw new IllegalArgumentException("JWT signing private key does not match its public key");
-        }
-        RSAKey key = new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID(properties.keyId())
-                .algorithm(JWSAlgorithm.RS256)
-                .build();
-        return new ImmutableJWKSet<>(new JWKSet(key));
+        return new ImmutableJWKSet<>(new JWKSet(keys));
     }
 
     @Bean
@@ -75,21 +84,6 @@ public class JwtConfig {
         return tokenDecoder(jwtJwkSource, properties, TokenType.REFRESH);
     }
 
-    private JwtDecoder tokenDecoder(JWKSource<SecurityContext> jwtJwkSource, JwtProperties properties,
-                                    TokenType tokenType) {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSource(jwtJwkSource)
-                .jwsAlgorithm(SignatureAlgorithm.RS256)
-                .build();
-        OAuth2TokenValidator<Jwt> defaults = JwtValidators.createDefaultWithIssuer(properties.issuer());
-        OAuth2TokenValidator<Jwt> audience = new JwtClaimValidator<java.util.List<String>>(
-                JwtClaimNames.AUD,
-                claim -> claim != null && claim.contains(properties.audience())
-        );
-        OAuth2TokenValidator<Jwt> type = new JwtClaimValidator<>(TOKEN_TYPE_CLAIM, tokenType.name()::equals);
-        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaults, audience, type));
-        return decoder;
-    }
-
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -99,5 +93,20 @@ public class JwtConfig {
         JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
         authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
         return authenticationConverter;
+    }
+
+    private JwtDecoder tokenDecoder(JWKSource<SecurityContext> jwkSource, JwtProperties properties,
+                                    TokenType tokenType) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSource(jwkSource)
+                .jwsAlgorithm(SignatureAlgorithm.RS256)
+                .build();
+        OAuth2TokenValidator<Jwt> defaults = JwtValidators.createDefaultWithIssuer(properties.issuer());
+        OAuth2TokenValidator<Jwt> audience = new JwtClaimValidator<List<String>>(
+                JwtClaimNames.AUD,
+                claim -> claim != null && claim.contains(properties.audience())
+        );
+        OAuth2TokenValidator<Jwt> type = new JwtClaimValidator<>(TOKEN_TYPE_CLAIM, tokenType.name()::equals);
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaults, audience, type));
+        return decoder;
     }
 }
