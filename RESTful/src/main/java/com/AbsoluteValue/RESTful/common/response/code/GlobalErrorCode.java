@@ -18,7 +18,9 @@ public enum GlobalErrorCode implements Code {
 
     MESSAGING(HttpStatus.INTERNAL_SERVER_ERROR, "서버에서 요청을 처리하던 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.", "005"),
 
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "요청한 리소스에 접근할 권한이 없습니다.", "006");
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "요청한 리소스에 접근할 권한이 없습니다.", "006"),
+
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "인증이 필요하거나 토큰이 유효하지 않습니다.", "007");
 
     private final HttpStatus status;
     private final String message;

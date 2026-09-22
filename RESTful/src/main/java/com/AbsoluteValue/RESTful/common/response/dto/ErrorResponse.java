@@ -20,16 +20,20 @@ public class ErrorResponse {
     private Map<String, Object> additionalData;
 
     public ErrorResponse(Code code, WebRequest request, Map<String, Object> additionalData) {
+        this(code, getPathFromRequest(request), additionalData);
+    }
+
+    public ErrorResponse(Code code, String path, Map<String, Object> additionalData) {
         this.timestamp = LocalDateTime.now();
         this.status = code.getStatus().value();
         this.error = code.getStatus().getReasonPhrase();
         this.message = code.getMessage();
-        this.path = getPathFromRequest(request);
+        this.path = path;
         this.code = code.getErrorCode();
         this.additionalData = additionalData;
     }
 
-    private String getPathFromRequest(WebRequest request) {
+    private static String getPathFromRequest(WebRequest request) {
         return request.getDescription(false).replace("uri=", "");
     }
 }
