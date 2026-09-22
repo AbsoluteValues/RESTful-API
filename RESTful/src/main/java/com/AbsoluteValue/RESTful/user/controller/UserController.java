@@ -57,6 +57,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(summary = "회원 정보 다건 조회", description = "[Deprecated] 모든 회원의 정보를 조회할 수 있도록 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", ref = "Ok"),
