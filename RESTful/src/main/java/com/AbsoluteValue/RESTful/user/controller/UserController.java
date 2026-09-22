@@ -9,10 +9,12 @@ import com.AbsoluteValue.RESTful.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +43,8 @@ public class UserController {
     }
 
     @GetMapping("/user/profile/{id}")
+    @PreAuthorize("authentication.name == #id")
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(summary = "회원 정보 단건 조회", description = "특정 회원의 정보를 조회할 수 있도록 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", ref = "Ok"),
