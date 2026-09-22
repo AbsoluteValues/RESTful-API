@@ -148,7 +148,7 @@ public class GlobalExceptionController {
             AccessDeniedException ex,
             WebRequest request
     ) {
-        logger.warn("접근 불가: ", ex);
+        logger.warn("접근 불가: {}", ex.getMessage());
         return ResponseHandler.error(GlobalErrorCode.ACCESS_DENIED, request);
     }
 
@@ -169,7 +169,7 @@ public class GlobalExceptionController {
             WebRequest request
     ) {
 
-        logger.warn("커스텀 예외 발생: ", ex);
+        logger.warn("커스텀 예외 발생: {}", ex.getMessage());
 
         return ResponseHandler.error(ex.getErrorCode(), request);
     }
