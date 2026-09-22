@@ -2,6 +2,7 @@ package com.AbsoluteValue.RESTful.common.config;
 
 import com.AbsoluteValue.RESTful.common.auth.config.SecurityProperties;
 import com.AbsoluteValue.RESTful.common.auth.handler.RestAuthenticationEntryPoint;
+import com.AbsoluteValue.RESTful.common.auth.handler.RestAccessDeniedHandler;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,6 +28,7 @@ public class SecurityConfig {
 
     private final SecurityProperties securityProperties;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter) {
@@ -48,10 +50,12 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                         .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .build();
     }

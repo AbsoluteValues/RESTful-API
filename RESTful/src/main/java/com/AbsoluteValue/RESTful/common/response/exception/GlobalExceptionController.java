@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -132,7 +133,6 @@ public class GlobalExceptionController {
         return ResponseHandler.error(GlobalErrorCode.MESSAGING, request);
     }
 
-    // (Spring Security 적용 필수)
     /**
      * 접근 권한이 없는 요청을 처리합니다.
      * <p>
@@ -143,16 +143,14 @@ public class GlobalExceptionController {
      * @param request 웹 요청 객체. 요청 정보를 포함합니다.
      * @return ResponseEntity<ErrorResponse> 오류 응답 객체. 에러 상태, 메시지 및 요청 경로 정보를 포함합니다.
      */
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
-//            AccessDeniedException ex,
-//            WebRequest request
-//    ) {
-//
-//        logger.warn("접근 불가: ", ex);
-//
-//        return ResponseHandler.error(GlobalErrorCode.ACCESS_DENIED, request);
-//    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex,
+            WebRequest request
+    ) {
+        logger.warn("접근 불가: ", ex);
+        return ResponseHandler.error(GlobalErrorCode.ACCESS_DENIED, request);
+    }
 
     /**
      * 커스텀 예외를 처리합니다.
