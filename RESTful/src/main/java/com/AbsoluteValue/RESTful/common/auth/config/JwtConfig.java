@@ -26,6 +26,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 @Configuration
 @EnableConfigurationProperties(JwtProperties.class)
@@ -73,5 +75,16 @@ public class JwtConfig {
         OAuth2TokenValidator<Jwt> type = new JwtClaimValidator<>(TOKEN_TYPE_CLAIM, TokenType.ACCESS.name()::equals);
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaults, audience, type));
         return decoder;
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        authoritiesConverter.setAuthoritiesClaimName(AUTHORITIES_CLAIM);
+        authoritiesConverter.setAuthorityPrefix("");
+
+        JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
+        authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        return authenticationConverter;
     }
 }
