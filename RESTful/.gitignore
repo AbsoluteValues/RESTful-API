@@ -3,6 +3,7 @@ HELP.md
 .env.*
 !.env.example
 secrets/
+/archive/legacy-spring-security-2026-06-23/
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
