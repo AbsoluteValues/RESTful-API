@@ -2,10 +2,19 @@ spring:
   application:
     name: RESTful
 
+  config:
+    import: optional:file:.env[.properties]
+
   profiles:
     active: local
 
-
-
 server:
   port: 8080
+
+jwt:
+  private-key-location: ${JWT_PRIVATE_KEY_LOCATION:file:./secrets/jwt-private.pem}
+  public-key-location: ${JWT_PUBLIC_KEY_LOCATION:file:./secrets/jwt-public.pem}
+  key-id: ${JWT_KEY_ID}
+  issuer: ${JWT_ISSUER:RESTful}
+  audience: ${JWT_AUDIENCE:RESTful-api}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:15m}

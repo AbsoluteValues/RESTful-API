@@ -12,3 +12,15 @@ spring:
     properties:
       hibernate:
         format_sql: false
+
+jwt:
+  private-key-location: classpath:jwt/test-private.pem
+  public-key-location: classpath:jwt/test-public.pem
+  key-id: test-key-1
+  issuer: RESTful-test
+  audience: RESTful-api-test
+  access-token-expiration: 15m
+
+security:
+  cors:
+    allowed-origins: http://localhost:3000
