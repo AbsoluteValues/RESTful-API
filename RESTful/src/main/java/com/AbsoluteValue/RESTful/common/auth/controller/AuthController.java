@@ -5,6 +5,8 @@ import com.AbsoluteValue.RESTful.common.auth.dto.LoginRequest;
 import com.AbsoluteValue.RESTful.common.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +22,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<JwtToken> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .body(authService.login(request));
     }
 }
