@@ -17,8 +17,6 @@ spring:
     enabled: false
 
 jwt:
-  private-key-location: classpath:jwt/test-private.pem
-  public-key-locations: classpath:jwt/test-public.pem,classpath:jwt/test-previous-public.pem
   public-key-ids: test-key-1,test-key-0
   key-id: test-key-1
   issuer: RESTful-test

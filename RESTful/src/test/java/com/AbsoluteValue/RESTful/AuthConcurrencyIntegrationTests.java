@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class AuthConcurrencyIntegrationTests {
+class AuthConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;

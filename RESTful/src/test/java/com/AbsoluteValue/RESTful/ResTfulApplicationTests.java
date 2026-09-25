@@ -13,9 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.AbsoluteValue.RESTful.common.auth.config.JwtConfig;
 import com.AbsoluteValue.RESTful.common.auth.config.JwtProperties;
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
-import java.io.InputStream;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -23,14 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -40,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class ResTfulApplicationTests {
+class ResTfulApplicationTests extends JwtIntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -349,21 +343,6 @@ class ResTfulApplicationTests {
                 .type("JWT")
                 .build();
         return encoder.encode(JwtEncoderParameters.from(headers, claims.build())).getTokenValue();
-    }
-
-    private JwtEncoder previousKeyEncoder() throws Exception {
-        RSAPrivateKey privateKey;
-        RSAPublicKey publicKey;
-        try (InputStream input = new ClassPathResource("jwt/test-previous-private.pem").getInputStream()) {
-            privateKey = RsaKeyConverters.pkcs8().convert(input);
-        }
-        try (InputStream input = new ClassPathResource("jwt/test-previous-public.pem").getInputStream()) {
-            publicKey = RsaKeyConverters.x509().convert(input);
-        }
-        return NimbusJwtEncoder.withKeyPair(publicKey, privateKey)
-                .algorithm(SignatureAlgorithm.RS256)
-                .jwkPostProcessor(builder -> builder.keyID("test-key-0"))
-                .build();
     }
 
     private String forgeSignature(String token) {
