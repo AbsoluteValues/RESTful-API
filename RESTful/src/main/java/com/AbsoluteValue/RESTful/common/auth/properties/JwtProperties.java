@@ -1,4 +1,4 @@
-package com.AbsoluteValue.RESTful.common.auth.config;
+package com.AbsoluteValue.RESTful.common.auth.properties;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

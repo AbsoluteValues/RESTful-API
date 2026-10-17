@@ -1,4 +1,4 @@
-package com.AbsoluteValue.RESTful.common.auth.config;
+package com.AbsoluteValue.RESTful.common.auth.properties;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,8 +1,8 @@
 package com.AbsoluteValue.RESTful.common.config;
 
-import com.AbsoluteValue.RESTful.common.auth.config.SecurityProperties;
 import com.AbsoluteValue.RESTful.common.auth.handler.RestAccessDeniedHandler;
 import com.AbsoluteValue.RESTful.common.auth.handler.RestAuthenticationEntryPoint;
+import com.AbsoluteValue.RESTful.common.auth.properties.SecurityProperties;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

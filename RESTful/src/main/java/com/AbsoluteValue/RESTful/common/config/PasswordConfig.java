@@ -1,4 +1,4 @@
-package com.AbsoluteValue.RESTful.common.auth.config;
+package com.AbsoluteValue.RESTful.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

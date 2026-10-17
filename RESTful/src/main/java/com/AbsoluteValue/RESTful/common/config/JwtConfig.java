@@ -1,5 +1,6 @@
-package com.AbsoluteValue.RESTful.common.auth.config;
+package com.AbsoluteValue.RESTful.common.config;
 
+import com.AbsoluteValue.RESTful.common.auth.properties.JwtProperties;
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
