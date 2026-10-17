@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.AbsoluteValue.RESTful.common.auth.repository.RefreshTokenRepository;
 import com.AbsoluteValue.RESTful.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,9 +34,6 @@ class AuthConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
     private MockMvc mockMvc;
 
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -45,7 +41,6 @@ class AuthConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
     @BeforeEach
     @AfterEach
     void cleanDatabase() {
-        refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 

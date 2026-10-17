@@ -13,9 +13,6 @@ spring:
       hibernate:
         format_sql: false
 
-  flyway:
-    enabled: false
-
 jwt:
   public-key-ids: test-key-1,test-key-0
   key-id: test-key-1

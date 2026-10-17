@@ -17,11 +17,4 @@ public class RefreshTokenHasher {
             throw new IllegalStateException("SHA-256 is not available", exception);
         }
     }
-
-    public boolean matches(String token, String expectedHash) {
-        return MessageDigest.isEqual(
-                hash(token).getBytes(StandardCharsets.UTF_8),
-                expectedHash.getBytes(StandardCharsets.UTF_8)
-        );
-    }
 }

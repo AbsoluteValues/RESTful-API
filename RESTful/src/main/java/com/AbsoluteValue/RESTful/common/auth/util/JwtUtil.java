@@ -92,8 +92,11 @@ public class JwtUtil {
 
     public Jwt parseRefreshToken(String token) {
         Jwt jwt = refreshTokenDecoder.decode(token);
-        if (jwt.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM) == null) {
-            throw new JwtException("Refresh token family is missing");
+        if (jwt.getId() == null || jwt.getId().isBlank()
+                || jwt.getSubject() == null || jwt.getSubject().isBlank()
+                || jwt.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM) == null
+                || jwt.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM).isBlank()) {
+            throw new JwtException("Required refresh token claims are missing");
         }
         return jwt;
     }

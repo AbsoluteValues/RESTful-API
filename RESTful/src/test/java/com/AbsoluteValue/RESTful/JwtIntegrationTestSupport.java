@@ -1,5 +1,7 @@
 package com.AbsoluteValue.RESTful;
 
+import com.AbsoluteValue.RESTful.common.auth.repository.RefreshTokenStore;
+import com.AbsoluteValue.RESTful.common.auth.token.RefreshTokenState;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -8,13 +10,67 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+@Import(JwtIntegrationTestSupport.RefreshTokenTestConfiguration.class)
 abstract class JwtIntegrationTestSupport {
+
+    @TestConfiguration
+    static class RefreshTokenTestConfiguration {
+
+        @Bean
+        RefreshTokenStore refreshTokenStore() {
+            return new RefreshTokenStore() {
+                private final Map<String, RefreshTokenState> tokens = new HashMap<>();
+
+                @Override
+                public synchronized void save(RefreshTokenState token) {
+                    if (tokens.putIfAbsent(token.familyId(), token) != null) {
+                        throw new IllegalStateException("Refresh token family already exists");
+                    }
+                }
+
+                @Override
+                public synchronized boolean rotate(RefreshTokenState presented, RefreshTokenState replacement) {
+                    RefreshTokenState current = tokens.get(presented.familyId());
+                    if (current == null) {
+                        return false;
+                    }
+                    if (!sameToken(current, presented)) {
+                        tokens.remove(presented.familyId());
+                        return false;
+                    }
+                    tokens.put(presented.familyId(), replacement);
+                    return true;
+                }
+
+                @Override
+                public synchronized boolean revoke(RefreshTokenState presented) {
+                    RefreshTokenState current = tokens.get(presented.familyId());
+                    if (current == null || !sameToken(current, presented)) {
+                        return false;
+                    }
+                    tokens.remove(presented.familyId());
+                    return true;
+                }
+
+                private boolean sameToken(RefreshTokenState current, RefreshTokenState presented) {
+                    return current.tokenId().equals(presented.tokenId())
+                            && current.userId().equals(presented.userId())
+                            && current.tokenHash().equals(presented.tokenHash());
+                }
+            };
+        }
+    }
 
     private static final TestKeyMaterial CURRENT_KEY = TestKeyMaterial.generate("current");
     private static final TestKeyMaterial PREVIOUS_KEY = TestKeyMaterial.generate("previous");

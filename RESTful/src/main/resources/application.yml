@@ -2,10 +2,6 @@ spring:
   application:
     name: RESTful
 
-  flyway:
-    baseline-on-migrate: true
-    baseline-version: 0
-
   jpa:
     open-in-view: false
 
