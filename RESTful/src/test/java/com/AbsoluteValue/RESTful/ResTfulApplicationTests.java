@@ -250,6 +250,45 @@ class ResTfulApplicationTests extends JwtIntegrationTestSupport {
     }
 
     @Test
+    void signupRejectsPasswordLongerThanBcryptByteLimit() throws Exception {
+        String password = "a".repeat(73);
+
+        mockMvc.perform(post("/api/user")
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "id": "testuser",
+                                  "password": "%s",
+                                  "nickname": "tester"
+                                }
+                                """.formatted(password)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void signupRejectsNonAsciiAndWhitespacePasswords() throws Exception {
+        for (String password : List.of("비밀번호123!", "abc 123!")) {
+            mockMvc.perform(post("/api/user")
+                            .with(csrf())
+                            .contentType("application/json")
+                            .content("""
+                                    {
+                                      "id": "testuser",
+                                      "password": "%s",
+                                      "nickname": "tester"
+                                    }
+                                    """.formatted(password)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void signupAcceptsAsciiLettersNumbersAndSymbols() throws Exception {
+        signUp("testuser", "Az09!@#-$%", "tester");
+    }
+
+    @Test
     void userCannotReadAnotherUsersProfile() throws Exception {
         signUp("testuser", "password123", "tester");
         signUp("otheruser", "password123", "other");
