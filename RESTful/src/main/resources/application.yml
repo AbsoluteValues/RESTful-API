@@ -20,8 +20,8 @@ server:
 
 
 jwt:
-  private-key-location: ${JWT_PRIVATE_KEY_LOCATION:file:./secrets/jwt-private.pem}
-  public-key-locations: ${JWT_PUBLIC_KEY_LOCATIONS:file:./secrets/jwt-public.pem}
+  private-key-location: ${JWT_PRIVATE_KEY_LOCATION}
+  public-key-locations: ${JWT_PUBLIC_KEY_LOCATIONS}
   public-key-ids: ${JWT_PUBLIC_KEY_IDS:${JWT_KEY_ID}}
   key-id: ${JWT_KEY_ID}
   issuer: ${JWT_ISSUER:RESTful}
