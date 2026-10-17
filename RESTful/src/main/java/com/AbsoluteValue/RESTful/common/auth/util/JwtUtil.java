@@ -1,7 +1,6 @@
 package com.AbsoluteValue.RESTful.common.auth.util;
 
 import com.AbsoluteValue.RESTful.common.auth.dto.JwtToken;
-import com.AbsoluteValue.RESTful.common.auth.exception.InvalidJwtException;
 import com.AbsoluteValue.RESTful.common.auth.properties.JwtProperties;
 import com.AbsoluteValue.RESTful.common.auth.token.IssuedTokens;
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
@@ -92,14 +91,10 @@ public class JwtUtil {
     }
 
     public Jwt parseRefreshToken(String token) {
-        try {
-            Jwt jwt = refreshTokenDecoder.decode(token);
-            if (jwt.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM) == null) {
-                throw new InvalidJwtException("Refresh token family is missing");
-            }
-            return jwt;
-        } catch (JwtException exception) {
-            throw new InvalidJwtException("Invalid JWT", exception);
+        Jwt jwt = refreshTokenDecoder.decode(token);
+        if (jwt.getClaimAsString(JwtConfig.FAMILY_ID_CLAIM) == null) {
+            throw new JwtException("Refresh token family is missing");
         }
+        return jwt;
     }
 }

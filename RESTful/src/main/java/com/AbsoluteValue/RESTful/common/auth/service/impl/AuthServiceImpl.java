@@ -4,7 +4,6 @@ import com.AbsoluteValue.RESTful.common.auth.dto.JwtToken;
 import com.AbsoluteValue.RESTful.common.auth.dto.LoginRequest;
 import com.AbsoluteValue.RESTful.common.auth.dto.RefreshTokenRequest;
 import com.AbsoluteValue.RESTful.common.auth.entity.RefreshToken;
-import com.AbsoluteValue.RESTful.common.auth.exception.InvalidJwtException;
 import com.AbsoluteValue.RESTful.common.auth.repository.RefreshTokenRepository;
 import com.AbsoluteValue.RESTful.common.auth.service.AuthService;
 import com.AbsoluteValue.RESTful.common.auth.token.IssuedTokens;
@@ -23,6 +22,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
     private Jwt parseRefreshToken(String token) {
         try {
             return jwtUtil.parseRefreshToken(token);
-        } catch (InvalidJwtException exception) {
+        } catch (JwtException exception) {
             throw invalidToken();
         }
     }
