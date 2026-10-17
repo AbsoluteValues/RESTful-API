@@ -11,6 +11,7 @@ import com.AbsoluteValue.RESTful.user.repository.UserRepository;
 import com.AbsoluteValue.RESTful.user.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserToDtoConverter userToDtoConverter;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -29,7 +31,7 @@ public class UserServiceImpl implements UserService {
         }
         User user = User.builder()
                 .id(signUpUserRequest.id())
-                .password(signUpUserRequest.password())
+                .password(passwordEncoder.encode(signUpUserRequest.password()))
                 .nickname(signUpUserRequest.nickname())
                 .build();
         userRepository.save(user);

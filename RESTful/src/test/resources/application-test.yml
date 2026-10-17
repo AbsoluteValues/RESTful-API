@@ -12,3 +12,15 @@ spring:
     properties:
       hibernate:
         format_sql: false
+
+jwt:
+  public-key-ids: test-key-1,test-key-0
+  key-id: test-key-1
+  issuer: RESTful-test
+  audience: RESTful-api-test
+  access-token-expiration: 15m
+  refresh-token-expiration: 14d
+
+security:
+  cors:
+    allowed-origins: http://localhost:3000
