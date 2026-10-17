@@ -107,7 +107,7 @@ class AuthConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
     }
 
     private void signUp() throws Exception {
-        mockMvc.perform(post("/api/user")
+        mockMvc.perform(post("/api/v1/user")
                         .contentType("application/json")
                         .content("""
                                 {

@@ -253,7 +253,7 @@ class ResTfulApplicationTests extends JwtIntegrationTestSupport {
     void signupRejectsPasswordLongerThanBcryptByteLimit() throws Exception {
         String password = "a".repeat(73);
 
-        mockMvc.perform(post("/api/user")
+        mockMvc.perform(post("/api/v1/user")
                         .with(csrf())
                         .contentType("application/json")
                         .content("""
@@ -269,7 +269,7 @@ class ResTfulApplicationTests extends JwtIntegrationTestSupport {
     @Test
     void signupRejectsNonAsciiAndWhitespacePasswords() throws Exception {
         for (String password : List.of("비밀번호123!", "abc 123!")) {
-            mockMvc.perform(post("/api/user")
+            mockMvc.perform(post("/api/v1/user")
                             .with(csrf())
                             .contentType("application/json")
                             .content("""
@@ -318,7 +318,7 @@ class ResTfulApplicationTests extends JwtIntegrationTestSupport {
     }
 
     private void signUp(String id, String password, String nickname) throws Exception {
-        mockMvc.perform(post("/api/user")
+        mockMvc.perform(post("/api/v1/user")
                         .with(csrf())
                         .contentType("application/json")
                         .content("""

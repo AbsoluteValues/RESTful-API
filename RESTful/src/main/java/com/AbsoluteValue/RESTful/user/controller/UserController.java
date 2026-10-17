@@ -30,7 +30,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/user")
+    @PostMapping("/v1/user")
     @Operation(summary = "회원 가입", description = "신규 회원이 가입할 수 있도록 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", ref = "Created"),
