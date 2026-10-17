@@ -22,7 +22,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .addServersItem(new Server().url("https://myhomeservertest.ddns.net"))
+                .addServersItem(new Server().url("https://myhomedevserver.com"))
                 .components(components())
                 .info(info());
     }
