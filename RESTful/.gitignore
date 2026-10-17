@@ -1,4 +1,5 @@
 HELP.md
+/archive/legacy-spring-security-2026-06-23/
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
