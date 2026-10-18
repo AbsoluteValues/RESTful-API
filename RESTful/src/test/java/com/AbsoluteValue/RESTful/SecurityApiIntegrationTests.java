@@ -65,6 +65,13 @@ class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
+    void openApiUsesTheCurrentOrigin() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.servers[0].url").value("/"));
+    }
+
+    @Test
     void loginReturnsJwtToken() throws Exception {
         signUp("testuser", "password123", "tester");
 
