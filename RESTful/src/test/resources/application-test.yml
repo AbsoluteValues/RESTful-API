@@ -20,7 +20,3 @@ jwt:
   audience: RESTful-api-test
   access-token-expiration: 15m
   refresh-token-expiration: 14d
-
-security:
-  cors:
-    allowed-origins: http://localhost:3000
