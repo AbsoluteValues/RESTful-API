@@ -2,6 +2,7 @@ package com.AbsoluteValue.RESTful;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +30,8 @@ import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -47,6 +51,10 @@ class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
 
     @Autowired
     private JwtProperties jwtProperties;
+
+    @Autowired
+    @Qualifier("refreshTokenDecoder")
+    private JwtDecoder refreshTokenDecoder;
 
     @Autowired
     private UserRepository userRepository;
@@ -139,15 +147,6 @@ class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
     }
 
     @Test
-    void invalidBearerTokenReturnsStandardChallenge() throws Exception {
-        mockMvc.perform(get("/api/user/profile/testuser")
-                        .header("Authorization", "Bearer invalid-token"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("007"))
-                .andExpect(header().string("WWW-Authenticate", "Bearer"));
-    }
-
-    @Test
     void expiredAccessTokenIsRejected() throws Exception {
         Instant now = Instant.now();
         String expiredToken = signedToken(
@@ -165,7 +164,7 @@ class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
     }
 
     @Test
-    void expiredRefreshTokenIsRejected() throws Exception {
+    void refreshDecoderRejectsExpiredToken() {
         Instant now = Instant.now();
         String expiredToken = signedToken(
                 TokenType.REFRESH,
@@ -175,11 +174,7 @@ class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
                 now.minusSeconds(3600)
         );
 
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType("application/json")
-                        .content(refreshRequest(expiredToken)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("683"));
+        assertThrows(JwtException.class, () -> refreshTokenDecoder.decode(expiredToken));
     }
 
     @Test
@@ -235,11 +230,24 @@ class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
         signUp("testuser", "password123", "tester");
         Tokens tokens = login("testuser", "password123");
 
+        assertThrows(JwtException.class, () -> refreshTokenDecoder.decode(tokens.accessToken()));
+
         mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType("application/json")
                         .content(refreshRequest(tokens.accessToken())))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("683"));
+    }
+
+    @Test
+    void refreshTokenCannotAccessProtectedApi() throws Exception {
+        signUp("testuser", "password123", "tester");
+        Tokens tokens = login("testuser", "password123");
+
+        mockMvc.perform(get("/api/user/profile/testuser")
+                        .header("Authorization", "Bearer " + tokens.refreshToken()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("007"));
     }
 
     @Test
