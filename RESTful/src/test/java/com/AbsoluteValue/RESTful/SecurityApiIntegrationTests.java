@@ -2,6 +2,7 @@ package com.AbsoluteValue.RESTful;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.AbsoluteValue.RESTful.common.auth.properties.JwtProperties;
 import com.AbsoluteValue.RESTful.common.auth.token.TokenType;
 import com.AbsoluteValue.RESTful.common.config.JwtConfig;
+import com.AbsoluteValue.RESTful.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -34,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class ResTfulApplicationTests extends JwtIntegrationTestSupport {
+class SecurityApiIntegrationTests extends JwtIntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,6 +47,12 @@ class ResTfulApplicationTests extends JwtIntegrationTestSupport {
 
     @Autowired
     private JwtProperties jwtProperties;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -247,6 +256,36 @@ class ResTfulApplicationTests extends JwtIntegrationTestSupport {
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("684"));
+    }
+
+    @Test
+    void signupStoresEncodedPassword() throws Exception {
+        signUp("testuser", "password123", "tester");
+
+        String storedPassword = userRepository.findUserById("testuser").orElseThrow().getPassword();
+        assertNotEquals("password123", storedPassword);
+        assertTrue(passwordEncoder.matches("password123", storedPassword));
+    }
+
+    @Test
+    void duplicateSignupIsRejectedWithoutReplacingTheUser() throws Exception {
+        signUp("testuser", "password123", "tester");
+        String originalPassword = userRepository.findUserById("testuser").orElseThrow().getPassword();
+
+        mockMvc.perform(post("/api/v1/user")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "id": "testuser",
+                                  "password": "another-password",
+                                  "nickname": "another"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("096"));
+
+        assertEquals(1, userRepository.count());
+        assertEquals(originalPassword, userRepository.findUserById("testuser").orElseThrow().getPassword());
     }
 
     @Test
