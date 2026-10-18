@@ -1,6 +1,7 @@
 package com.AbsoluteValue.RESTful;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,7 +29,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class AuthConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
+class InMemoryRefreshConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,7 +58,7 @@ class AuthConcurrencyIntegrationTests extends JwtIntegrationTestSupport {
                     refreshAsync(executor, ready, start, refreshToken),
                     refreshAsync(executor, ready, start, refreshToken)
             );
-            ready.await(5, TimeUnit.SECONDS);
+            assertTrue(ready.await(5, TimeUnit.SECONDS));
             start.countDown();
 
             List<RefreshResult> results = new ArrayList<>();
